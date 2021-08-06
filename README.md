@@ -26,3 +26,10 @@ dutils.binom:
       OutBinom.yval() @property:
         Returns OutBinom.y of type X.
       OutBinom.nval() @property:
+        Returns OutBinom.n of type uint.
+    InBinom(X) if(is(X : real)):
+      Class for using binomials as input(specified x, y, n, soforth.)
+      InBinom.this(X x, Y y, uint n, unknown xunknown, unknown yunknown, unknown kunknown):
+        Constructor for InBinom.
+      InBinom.BinomEqu:
+        Applies the binomial theorem to the class object the function is a member type. Returns an OutBinom!(typeof(X)) object.
