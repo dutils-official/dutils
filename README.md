@@ -17,6 +17,12 @@ dutils.binom:
         A more complete constructor for the class(currently not used by the library.)
       OutBinom.result() @property:
         Returns the sum of all the members of outvals as a type X.
-      OutBinom.seperatedvals() @property
+      OutBinom.seperatedvals() @property:
         Returns the elements of OutBinom.outvals as an array.
-      
+      OutBinom.coefficients() @property:
+        Returns the elements of OutBinom.coefficiants as an uint array.
+      OutBinom.xval() @property:
+        Returns OutBinom.x of type X.
+      OutBinom.yval() @property:
+        Returns OutBinom.y of type X.
+      OutBinom.nval() @property:
