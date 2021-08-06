@@ -50,11 +50,11 @@ public class OutBinom(X)  if(is(X : real))	{ //Class for the output of functions
 		}
 
 		X[] seperatedvals() @property	{
-			return this.outvals;
+			return this.outvals.dup;
 		}
 
 		uint[] coefficients()	@property	{
-			return this.coefficiants;
+			return this.coefficiants.dup;
 		}
 
 		X xval() @property	{
