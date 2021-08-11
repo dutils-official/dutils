@@ -2,7 +2,7 @@
 /*Version 0.3.5 Release*/
 /*Last Updated: 08/10/2021*/
 /*Module for menus in the D Programming Language 2.0*/
-module init;
+module dutils.init;
 
 class cMenu	{ //Menu to be displayed on console.
 	private:
