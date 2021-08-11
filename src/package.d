@@ -3,4 +3,5 @@
 /*Some random modules. Use at free will*/
 module dutils;
 
-public import dutils.binom;
+public import duitls.binom;
+public import dutils.init;
