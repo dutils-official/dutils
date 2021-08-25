@@ -4,4 +4,4 @@
 module dutils;
 
 public import duitls.binom;
-public import dutils.init;
+public import dutils.sprite;
