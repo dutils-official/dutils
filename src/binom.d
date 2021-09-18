@@ -20,8 +20,6 @@
 
 module dutils.binom;
 
-public enum unknown { no = 0, yes = 1};
-
 public class OutBinom(X)  if(is(X : real))	{ //Class for the output of functions involving binomials
 	private:
 	uint[] coefficiants;
@@ -100,24 +98,14 @@ public class InBinom(X) if(is(X : real))	{	//Class for the binomials(input)
 		X x;
 		X y;
 		uint n;
-		unknown xunknown;
-		unknown yunknown;
-		unknown nunknown;
 	public:
-		this(X x, X y, uint n, unknown xunknown, unknown yunknown, unknown nunknown)	{
+		this(X x, X y, uint n)	{
 			this.x = x;
 			this.y = y;
 			this.n = n;
-			if(xunknown == unknown.yes || yunknown == unknown.yes)	{
-				throw new Exception("Unkown variables are not implemented yet.");
-			}
-			this.xunknown = xunknown;
-			this.yunknown = yunknown;
-			this.nunknown = nunknown;
 		}
 
 		OutBinom!(typeof(this.x)) BinomEqu()	{ //Implements the Binomial Theorem
-			assert(xunknown == unknown.no && yunknown == unknown.no && nunknown == unknown.no); //Replace by exception
 			uint[] coff;
 			coff.length = this.n+1;
 			X[] outval;
