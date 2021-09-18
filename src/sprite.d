@@ -2,23 +2,8 @@
 /*Version 0.3.5 Release*/
 /*Last Update: 08/23/2021*/
 /*Module for sprites in the D Programming Language 2.0*/
-
-/*    This file is part of dutils.
-
-    dutils is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    dutils is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with dutils.  If not, see <https://www.gnu.org/licenses/>.*/
-
 module dutils.sprite;
+import skeleton : Point;
 
 version(USE_BUILT_IN_SPRITES)	{ //Use built in sprites(garbage .spr format coded by me, that still needs an editor: Editor using GtKD for .spr comes out later this year, if I can get myself to do it)...
 	public struct Color	{
@@ -33,38 +18,29 @@ version(USE_BUILT_IN_SPRITES)	{ //Use built in sprites(garbage .spr format coded
 			this.a = rhs.a;
 		}
 	}
-	
-	public struct Pixel	{
-		ushort x;
-		ushort y;
-		void opAssign(Pixel rhs)	{
-			this.x = rhs.x;
-			this.y = rhs.y;
-		}
-	}
-	
+
 	public struct Sprite	{
 		Color[] colors;
-		Pixel[][] pixels;
+		Point[][] points;
 		invariant()	{
-			assert(colors.length == pixels.length, "Assertion failure: Sprite.colors.length and Sprite.pixels.length must always be equal...");
+			assert(colors.length == points.length, "Assertion failure: Sprite.colors.length and Sprite.points.length must always be equal...");
 		}
 		void opAssign(Sprite rhs)	{
 			this.colors.length = rhs.colors.length;
-			this.pixels.length = rhs.pixels.length;
+			this.points.length = rhs.points.length;
 			foreach(i;0 .. this.colors.length)	{
 				this.colors[i] = rhs.colors[i];
 			}
-			foreach(i;0 .. this.pixels.length)	{
-				this.pixels[i].length = rhs.pixels[i].length;
-				foreach(j;0 .. this.pixels[i].length)	{
-					this.pixels[i][j] = rhs.pixels[i][j];
+			foreach(i;0 .. this.points.length)	{
+				this.points[i].length = rhs.points[i].length;
+				foreach(j;0 .. this.points[i].length)	{
+					this.points[i][j] = rhs.points[i][j];
 				}
 			}
 		}
 		package void ChangeLengths(uint c)	{ //Change both lengths so invariant doesn't get triggered...
 			this.colors.length = c;
-			this.pixels.length = c;
+			this.points.length = c;
 		}
 	}
 	
@@ -86,7 +62,7 @@ version(USE_BUILT_IN_SPRITES)	{ //Use built in sprites(garbage .spr format coded
 					i += 1;
 					j = 0;
 					dest.ChangeLengths(cast(uint)i+1);
-					dest.pixels[i].length = 0;
+					dest.points[cast(uint)i].length = 0;
 					foreach(k;0 .. 2)	{
 						buffer = file.readln(',');
 						buffer = cast(string)parse(cast(char[])buffer);
@@ -109,7 +85,7 @@ version(USE_BUILT_IN_SPRITES)	{ //Use built in sprites(garbage .spr format coded
 					i += 1;
 					j = 0;
 					dest.ChangeLengths(cast(uint)i+1);
-					dest.pixels[i].length = 0;
+					dest.points[cast(uint)i].length = 0;
 					foreach(k;0 .. 3)	{
 						buffer = file.readln(',');
 						buffer = cast(string)parse(cast(char[])buffer);
@@ -131,14 +107,17 @@ version(USE_BUILT_IN_SPRITES)	{ //Use built in sprites(garbage .spr format coded
 					buffer = strip(buffer);
 					dest.colors[cast(uint)i].a = to!ubyte(buffer);
 					break;
-				case "PIXEL":
-					dest.pixels[i].length += 1;
+				case "POS":
+					dest.points[cast(uint)i].length += 1;
 					buffer = file.readln(',');
 					buffer = cast(string)parse(cast(char[])buffer);
-					dest.pixels[i][j].x = to!ushort(buffer);
+					dest.points[cast(uint)i][j].x = to!ushort(buffer);
+					buffer = file.readln(',');
+					buffer = cast(string)parse(cast(char[])buffer);
+					dest.points[cast(uint)i][j].y = to!ushort(buffer);
 					buffer = file.readln();
 					buffer = strip(buffer);
-					dest.pixels[i][j].y = to!ushort(buffer);
+					dest.points[cast(uint)i][j].z = to!ushort(buffer);
 					j+=1;
 					break;
 				case "END":
