@@ -62,4 +62,48 @@ void main()	{
 		currlibline ~= objextension.dup;
 		executeShell(currlibline);
 	}
+	//Abnormal libbuilding...
+	string[] abnormal = [ "sprite" ];
+	string[][2] versions = [ [ "USE_BUILT_IN_SPRITES", "ubfs" ] ];
+	foreach(lib;0 .. cast(uint)abnormal.length)	{
+		char[] currcmdline;
+		char[] currlibline;
+		currcmdline = cmdline.dup;
+		currlibline = libline.dub;
+		currcmdline ~= abnormal[lib];
+		foreach(ver;0 .. cast(uint)versions[lib].length)	{
+			if((ver % 2) != 0)	{
+				currcmdline ~= versions[lib][ver];
+			}
+		}
+		currcmdline ~= objextension;
+		currcmdline ~= " ";
+		version(DigitalMars)	{
+			currcmdline ~= "-version=";
+		}
+		version(GDC)	{
+			currcmdline ~= "--fversion=";
+		}
+		foreach(ver;0 .. cast(uint)versions[lib].length)	{
+			if((ver % 2) == 0)	{
+				currcmdline ~= versions[lib][ver];
+			}
+		}
+		currcmdline ~= " ";
+		currcmdline ~= ("./src/" ~ abnormal[lib] ~ ".d");
+		executeShell(currcmdline); //Execute current command line...
+		currlibline ~= abnormal[lib];
+		foreach(ver;0 .. cast(uint)versions[lib].length)	{
+			if((ver % 2) != 0)	{
+				currlibline ~= versions[lib][ver];
+			}
+		}
+		currlibline ~= extension;
+		currlibline ~= (" ./obj/" ~ abnormal[lib]);
+		foreach(ver;0 .. cast(uint)versions[lib].length)	{
+			if((ver % 2) != 0)	{
+				currlibline ~= versions[lib][ver];
+			}
+		}
+		currlibline ~= objextension;
 }
