@@ -44,106 +44,70 @@ version(USE_BUILT_IN_SPRITES)	{ //Use built in sprites(garbage .spr format coded
 		}
 	}
 	
-	public ubyte ReadSpriteFromFile(immutable(char)[] filename, ref Sprite dest)	{ //Reads a sprite in my made up .spr format(trash, why does this even exist)
-		import std.stdio;
-		File file = File(filename, "r");
-		import std.string;
-		import std.format;
-		import std.conv : to;
-		string buffer;
-		bool first = true;
-		long i = -1;
-		uint j = 0;
-		while(!file.eof())	{
-			buffer = file.readln();
-			buffer = strip(buffer);
-			switch(buffer)	{
-				case "RGB":
-					i += 1;
-					j = 0;
-					dest.ChangeLengths(cast(uint)i+1);
-					dest.points[cast(uint)i].length = 0;
-					foreach(k;0 .. 2)	{
-						buffer = file.readln(',');
-						buffer = cast(string)parse(cast(char[])buffer);
-						switch(k)	{
-							case 0:
-								dest.colors[cast(uint)i].r = to!ubyte(buffer);
-								break;
-							case 1:
-								dest.colors[cast(uint)i].g = to!ubyte(buffer);
-								break;
-							default:
-								break;
-						}
-					}
-					buffer = file.readln();
-					buffer = strip(buffer);
-					dest.colors[cast(uint)i].b = to!ubyte(buffer);
-					break;
-				case "RGBA":
-					i += 1;
-					j = 0;
-					dest.ChangeLengths(cast(uint)i+1);
-					dest.points[cast(uint)i].length = 0;
-					foreach(k;0 .. 3)	{
-						buffer = file.readln(',');
-						buffer = cast(string)parse(cast(char[])buffer);
-						switch(k)	{
-							case 0:
-								dest.colors[cast(uint)i].r = to!ubyte(buffer);
-								break;
-							case 1:
-								dest.colors[cast(uint)i].g = to!ubyte(buffer);
-								break;
-							case 2:
-								dest.colors[cast(uint)i].b = to!ubyte(buffer);
-								break;
-							default:
-								break;
-						}
-					}
-					buffer = file.readln();
-					buffer = strip(buffer);
-					dest.colors[cast(uint)i].a = to!ubyte(buffer);
-					break;
-				case "POS":
-					dest.points[cast(uint)i].length += 1;
-					buffer = file.readln(',');
-					buffer = cast(string)parse(cast(char[])buffer);
-					dest.points[cast(uint)i][j].x = to!ushort(buffer);
-					buffer = file.readln(',');
-					buffer = cast(string)parse(cast(char[])buffer);
-					dest.points[cast(uint)i][j].y = to!ushort(buffer);
-					buffer = file.readln();
-					buffer = strip(buffer);
-					dest.points[cast(uint)i][j].z = to!ushort(buffer);
-					j+=1;
-					break;
-				case "END":
-					goto Close;
-					break;
-				default:
-					throw new Exception(format("Invalid Statement: %s", buffer));
-					break;
+	public Sprite ReadSpriteFromFile(immutable(char)[] filename)	{ //Reads a sprite in my made up .spr format(trash, why does this even exist)
+		ubyte[] ftext;
+		Color[] colors;
+		Point[][] points;
+		import std.file;
+		uint i = 0;
+		ftext = cast(ubyte[])read(filename);
+		while(i < ftext.length)	{ //Parse the file...
+			long main;
+			short exp;
+			uint x = 0;
+			++colors.length;
+			++points.length;
+			colors[x].r = ftext[i]; //Set r color...
+			++i;
+			colors[x].g = ftext[i];
+			++i;
+			colors[x].b = ftext[i];
+			++i;
+			colors[x].a = ftext[t];
+			++i;
+			ubyte tempcolor = ftext[i];
+			++i;
+			long temp;
+			for(ubyte j = 0;j < tempcolor; ++j)	{
+				posfunc(ftext, main, exp, temp, i, j, points , x);
 			}
 		}
-		Close:
-		file.close();
-		return 0;
-		assert(0);
+		return Sprite(colors, points);
 	}
 	
-	package char[] parse(char[] toparse)	{
-		foreach(i;0 .. toparse.length)	{
-			if(toparse[i] == ',')	{
-				for(uint j = cast(uint)i;j < (toparse.length-1);j++)	{
-					toparse[j] = toparse[j+1];
-				}
-				toparse.length-=1;
+	package void posfunc(const ubyte[] ftext, ref long main, ref short exp, ref long temp, ref uint i, const ubyte j, ref Point[][] points, ref uint x)	{
+		++points[x].length;
+		foreach(z;0 .. 3)	{
+			short shift = 56;
+			main = ftext[i];
+			main <<= shift;
+			++i;
+			shift -= 8;
+			while(shift >= 0)	{
+				temp = ftext[i];
+				main = (main <= (-0)) ? (main - temp) : (main + temp);
+				++i;
+				shift -= 8;
+			}
+			exp = ftext[i];
+			exp <<= 8;
+			++i;
+			exp += ftext[i];
+			++i;
+			switch(z)	{
+				case 0:
+					points[x][j].x = (main * 10^^exp);
+					break;
+				case 1:
+					points[x][j].y = (main * 10^^exp);
+					break;
+				case 2:
+					points[x][j].z = (main * 10^^exp);
+					break;
+				default:
+					assert(false); //bruh...
 			}
 		}
-	return toparse;
 	}
 }
 
