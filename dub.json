@@ -1,0 +1,9 @@
+{
+	"authors": [
+		"Ruby The Roobster"
+	],
+	"copyright": "Copyright © 2021, Ruby The Roobster",
+	"description": "A collection of packages in the D Programming Language made by me.",
+	"license": "GLP-3.0",
+	"name": "dutils"
+}
