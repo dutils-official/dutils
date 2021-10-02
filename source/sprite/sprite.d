@@ -1,5 +1,5 @@
 /*sprite.d by Ruby The Roobster*/
-/*Version 0.3.5 Release*/
+/*Version 1.0.0 Release*/
 /*Last Update: 08/23/2021*/
 /*Module for sprites in the D Programming Language 2.0*/
 /*This program is free software: you can redistribute it and/or modify
@@ -14,20 +14,22 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
-module dutils.sprite;
-import skeleton : Point;
 
-/**Struct Color:  This data structure represents colors in the RGBA format.
-  *Members:
-  *ubyte r: The 'R' value of the color.
-  *ubyte g: The 'G' value of the color.
-  *ubyte b: The 'B' value of the color.
-  *ubyte a: The opacity of the color.
-*/
+/** Copyright: 2021, Ruby The Roobster*/
+/**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
+/**Date: October 1, 2021*/
+/** License:  GPL-3.0**/
+module dutils.sprite.sprite;
+import dutils.skeleton.skeleton : Point;
+/**Struct Color:  This data structure represents colors in the RGBA format.*/
 public struct Color	{
+	///Color.r is the 'R' value of the color.
 	ubyte r = 0;
+	///Color.g is the 'G' value of the color.
 	ubyte g = 0;
+	///Color.b is the 'B' value of the color.
 	ubyte b = 0;
+	//Color.a is the 'A' value of the color.
 	ubyte a = 255;
 	void opAssign(Color rhs)	{
 		this.r = rhs.r;
@@ -36,13 +38,11 @@ public struct Color	{
 		this.a = rhs.a;
 	}
 }
-/**Struct Sprite:  This data structure represents a sprite that would be painted over a face from dutils:skeleton.
-  *Members:
-  *Color[] colors:  An array of all the colors used in the sprite.
-  *Point[][] points:  The second dimension of the array(Sprite.points[x] where x is the index)corresponds to the according index in Sprite.colors while the first dimension(Sprite.points[x][y] where x is the index of the second dimension and y is the index of the first dimension) corresponds to the point itself.
-*/
+/**Struct Sprite:  This data structure represents a sprite that would be painted over a face from dutils:skeleton*/
 public struct Sprite	{
+	///Sprite.colors is the array of colors that are used within the Sprite.
 	Color[] colors;
+	///Sprite.points is a two-demensional array of the points corresponding to each color.
 	Point[][] points;
 	invariant()	{
 		assert(colors.length == points.length, "Assertion failure: Sprite.colors.length and Sprite.points.length must always be equal...");

@@ -17,16 +17,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
 /**Date: October 1, 2021*/
 /** License:  GPL-3.0**/
-module dutils.skeleton;
-/**Struct for representing a point.
-  *Members:
-  *x
-  *y
-  *z
-*/
+module dutils.skeleton.skeleton;
+/**Struct for representing a point.*/
 public struct Point	{ //Point structure...
+	///Point.x is the 'x' coordinate of the point.
 	real x;
+	///Point.y is the 'y' coordinate of the point.
 	real y;
+	///Point.z is the 'z' coordinate of the point.
 	real z;
 	void opAssign(Point rhs)	{
 		this.x = rhs.x;
@@ -39,13 +37,11 @@ public struct Point	{ //Point structure...
 		mixin("this.z " ~ op ~ "= rhs.z;");
 	}
 }
-/**Struct for representing a face of a skeleton that is made out of lines:
-  *Members:
-  *Line[] lines:  An array of the lines that make up the face.
-  *Point center:  The center of the face.
-*/
+/**Struct for representing a face of a skeleton that is made out of lines.*/
 public struct Face	{ //Face(of a 3D shape) structure...
+	///Face.lines is an array of all the lines that connect to form the face.
 	Line[] lines;
+	///Face.center is the center point of the face.
 	Point center;
 	void opAssign(Face rhs)	{
 		this.lines.length = rhs.lines.length;
@@ -54,12 +50,11 @@ public struct Face	{ //Face(of a 3D shape) structure...
 		}
 	}
 }
-/**Struct for representing a 3D skeleton.
-  *Face[] faces: An array of all the faces making up the skeleton.
-  *Point center: The center of the skeleton.
-*/
+/**Struct for representing a 3D skeleton.*/
 public struct Skeleton	{ //Skeleton of a 3D structure...
+	///Skeleton.faces is an array of the faces that make up the Skeleton.
 	Face[] faces;
+	///Skeleton.center is the center point of the skeleton.
 	Point center;
 	void opAssign(Skeleton rhs)	{
 		this.faces.length = rhs.faces.length;
@@ -71,16 +66,15 @@ public struct Skeleton	{ //Skeleton of a 3D structure...
 }
 
 /**Struct for representing a line composed of at least a starting point and an end point.
-  *Members:
-  *Point[] mid_points:  For storing all points that neither start nor end the line.
-  *Point start:  The point that starts the line.
-  *Point stop:  The point that ends the line.
   *Notes:
   *This struct doesn't check to make sure that the line made is an actual line and assumes the user knows what they are doing.
 */
 public struct Line	{ //Line struct...
+	///Line.mid_points is an array containing all of the points that are neither start nor end points.
 	Point[] mid_points;
+	///Line.start is the start point of the line.
 	Point start;
+	///Line.end is the end point of the line.
 	Point stop;
 	void opAssign(Line rhs)	{
 		this.start = rhs.start;
