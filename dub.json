@@ -5,5 +5,31 @@
 	"copyright": "Copyright © 2021, Ruby The Roobster",
 	"description": "A collection of packages in the D Programming Language made by me.",
 	"license": "GLP-3.0",
-	"name": "dutils"
+	"name": "dutils",
+	"importPaths": ["."],
+	"sourceFiles": ["package.d"],
+	"targetType": "library",
+	"subPackages": [
+		{
+			"name": "sprite",
+			"description": ".spr file format for images because I'm to lazy to use a preexisting one for sprites.",
+			"targetType": "library",
+			"importPaths": ["."],
+			"sourceFiles": ["sprite.d"]
+		},
+		{
+			"name": "binom",
+			"description": "Module for doing some bionomial work in the D Programming Language(why did I make this).",
+			"targetType": "library",
+			"importPaths": ["."],
+			"sourceFiles": ["binom.d"]
+		},
+		{
+			"name": "skeleton",
+			"description": "Module for implementing skeletons, e.g. a cube with criss-crossing beams to better detect collision.",
+			"targetType": "library",
+			"importPaths": ["."],
+			"sourceFiles": ["skeleton.d"]
+		}
+	]
 }

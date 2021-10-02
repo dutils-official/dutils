@@ -1,9 +1,34 @@
 /*binom.d by Ruby The Roobster*/
 /* Version 0.2.5 Release*/
-/*Last Updated: 08/06/2021*/
 /*Module for handling binomials in the D Programming Languge 2.0*/
+/*This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
+/** Copyright: 2021, Ruby The Roobster*/
+/**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
+/**Date: October 1, 2021*/
+/** License:  GPL-3.0**/
+
 module dutils.binom;
 
+/**Class: Output of member functions of InBinom
+  *Members:
+  *result: returns the result of the operation using the binomial theroem.
+  *seperatedvals: returns all of the individual sections that get added during the binomial theroem.
+  *coefficients:  returns an array of all the coefficients.
+  *nval: returns the value of n for nCk.
+  *xval: returns the value of x.
+  *yval: returns the value of y.
+*/
 public class OutBinom(X)  if(is(X : real))	{ //Class for the output of functions involving binomials
 	private:
 	uint[] coefficiants;
@@ -67,7 +92,12 @@ public class OutBinom(X)  if(is(X : real))	{ //Class for the output of functions
 			return this.n;
 		}	
 }
-
+/**********************************************************************
+  * This function returns the factorial of a number.
+  * Params:
+  * f = 	is the number that the factorial is being performed on.
+  * Returns: The factorial of f.
+*/
 public uint factorial(uint f)	{ //Bug Free
 	if(f == 0 || f == 1)
 		return 1;
@@ -76,6 +106,11 @@ public uint factorial(uint f)	{ //Bug Free
 	}
 	return f;
 }
+/***************************************************************
+  * Class:  Serves as a set up binomial to perform operations on.
+  * Members:
+  * BinomEqu:  Performs the bionmial theorem on the object.
+*/
 public class InBinom(X) if(is(X : real))	{	//Class for the binomials(input)
 	private:
 		X x;
@@ -87,8 +122,13 @@ public class InBinom(X) if(is(X : real))	{	//Class for the binomials(input)
 			this.y = y;
 			this.n = n;
 		}
-
-		OutBinom!(typeof(this.x)) BinomEqu()	{ //Implements the Binomial Theorem
+		/********************************************************************************************
+		  * BinomEqu perofrms the binomial theorem on the object that it is a member of.
+		  * Params:
+		  * none
+		  * Returns: OutBinom!X containing the result of applying the binomial theorem on the object.
+		*/
+		OutBinom!X BinomEqu()	{ //Implements the Binomial Theorem
 			uint[] coff;
 			coff.length = this.n+1;
 			X[] outval;
