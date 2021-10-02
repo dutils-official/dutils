@@ -31,5 +31,10 @@
 			"importPaths": ["."],
 			"sourceFiles": ["skeleton.d"]
 		}
-	]
+	],
+	"dependencies": {
+		"dutils:sprite": "~>0.1.0",
+		"dutils:skeleton": "~>0.1.0",
+		"dutils:binom": "~>0.1.0"
+	}
 }
