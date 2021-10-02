@@ -15,7 +15,10 @@
 			"description": ".spr file format for images because I'm to lazy to use a preexisting one for sprites.",
 			"targetType": "library",
 			"importPaths": ["."],
-			"sourceFiles": ["sprite.d"]
+			"sourceFiles": ["sprite.d"],
+			"dependencies":	{
+				"dutils:skeleton": "~>0.1.0"
+			}
 		},
 		{
 			"name": "binom",
