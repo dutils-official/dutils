@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /**Date: October 1, 2021*/
 /** License:  GPL-3.0**/
 
-module dutils.binom.binom;
+module dutils.binom;
 
 /**Class: Output of member functions of InBinom*/
 public class OutBinom(X)  if(is(X : real))	{ //Class for the output of functions involving binomials

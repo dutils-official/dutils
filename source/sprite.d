@@ -19,8 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
 /**Date: October 1, 2021*/
 /** License:  GPL-3.0**/
-module dutils.sprite.sprite;
-import dutils.skeleton.skeleton : Point;
+module dutils.sprite;
+import dutils.skeleton : Point;
 /**Struct Color:  This data structure represents colors in the RGBA format.*/
 public struct Color	{
 	///Color.r is the 'R' value of the color.

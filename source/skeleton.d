@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
 /**Date: October 1, 2021*/
 /** License:  GPL-3.0**/
-module dutils.skeleton.skeleton;
+module dutils.skeleton;
 /**Struct for representing a point.*/
 public struct Point	{ //Point structure...
 	///Point.x is the 'x' coordinate of the point.
