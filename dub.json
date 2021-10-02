@@ -6,7 +6,7 @@
 	"description": "A collection of packages in the D Programming Language made by me.",
 	"license": "GLP-3.0",
 	"name": "dutils",
-	"importPaths": ["."],
+	"importPaths": ["./source"],
 	"sourceFiles": ["package.d"],
 	"targetType": "library",
 	"subPackages": [
@@ -14,7 +14,7 @@
 			"name": "sprite",
 			"description": ".spr file format for images because I'm to lazy to use a preexisting one for sprites.",
 			"targetType": "library",
-			"importPaths": ["."],
+			"importPaths": ["./source"],
 			"sourceFiles": ["sprite.d"],
 			"dependencies":	{
 				"dutils:skeleton": "~>0.1.0"
@@ -24,20 +24,15 @@
 			"name": "binom",
 			"description": "Module for doing some bionomial work in the D Programming Language(why did I make this).",
 			"targetType": "library",
-			"importPaths": ["."],
+			"importPaths": ["./source"],
 			"sourceFiles": ["binom.d"]
 		},
 		{
 			"name": "skeleton",
 			"description": "Module for implementing skeletons, e.g. a cube with criss-crossing beams to better detect collision.",
 			"targetType": "library",
-			"importPaths": ["."],
+			"importPaths": ["./source"],
 			"sourceFiles": ["skeleton.d"]
 		}
-	],
-	"dependencies": {
-		"dutils:sprite": "~>0.1.0",
-		"dutils:skeleton": "~>0.1.0",
-		"dutils:binom": "~>0.1.0"
-	}
+	]
 }
