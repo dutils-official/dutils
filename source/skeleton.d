@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2021, Ruby The Roobster*/
 /**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
 /**Date: October 1, 2021*/
-/** License:  GPL-3.0**/
+/** License:  GPL-3.0*/
 module dutils.skeleton;
 /**Struct for representing a point.*/
 public struct Point	{ //Point structure...
@@ -26,6 +26,11 @@ public struct Point	{ //Point structure...
 	real y;
 	///Point.z is the 'z' coordinate of the point.
 	real z;
+	this(real x, real y, real z)	{
+		this.x = x;
+		this.y = y;
+		this.z = z;
+	}
 	void opAssign(Point rhs)	{
 		this.x = rhs.x;
 		this.y = rhs.y;
