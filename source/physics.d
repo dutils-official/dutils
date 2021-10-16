@@ -19,19 +19,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** License: GPL-3.0*/
 module dutils.physics;
 public import dutils.skeleton;
-pragma(inline) package void mv(Point moveby, ref Skeleton tomove)	{
-	foreach(i;tomove.faces)	{
-		foreach(k;i.lines)	{
-			foreach(j;k.mid_points)	{
-				j += moveby;
-			}
-			k.start += moveby;
-			k.stop += moveby;
-		}
-		i.center += moveby;
-	}
-	tomove.center += moveby;
-}
 /**
   * move moves all the points in a skeleton to a specified point with a specified time gap between moving the points.
   * Params:
@@ -45,6 +32,8 @@ pragma(inline) package void mv(Point moveby, ref Skeleton tomove)	{
 public void move(Point moveto, uint tbf, ref Skeleton tomove, real speed)	{
 	import core.thread;
 	Point moveby;
+	auto ori = tomove;
+		debug import std.stdio : writeln;
 	if(speed > 1 || speed < -1)	{
 		moveby.x = moveto.x / speed;
 		moveby.y = moveto.y / speed;
@@ -53,15 +42,22 @@ public void move(Point moveto, uint tbf, ref Skeleton tomove, real speed)	{
 	else	{
 		moveby.x = moveto.x * speed;
 		moveby.y = moveto.y * speed;
-		moveto.z = moveto.z * speed;
+		moveby.z = moveto.z * speed;
 	}
 	while(!((tomove.center.x > moveto.x && moveto.x > 0) ^ (tomove.center.x < moveto.x && moveto.x < 0)))	{
-		mv(moveby, tomove);
-		debug import std.stdio : writeln;
-		debug writeln(tomove.center);
+		foreach(i;tomove.faces)	{
+			foreach(k;i.lines)	{
+				foreach(j;k.mid_points)	{
+					j += moveby;
+				}
+				k.start += moveby;
+				k.stop += moveby;
+			}
+			i.center += moveby;
+		}
+		tomove.center += moveby;
 		Thread.sleep(dur!"msecs"(tbf));
 	}
-	auto ori = &tomove;
 	foreach(i;ori.faces)	{
 		foreach(j;i.lines)	{
 			foreach(k;j.mid_points)	{
@@ -73,8 +69,7 @@ public void move(Point moveto, uint tbf, ref Skeleton tomove, real speed)	{
 		i.center += moveto;
 	}
 	ori.center += moveto;
-	debug import std.stdio : writeln;
-	debug writeln(tomove.center);
+	tomove = ori;
 }
 
 public void accMove()	{
