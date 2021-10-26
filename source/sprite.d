@@ -64,7 +64,7 @@ public struct Sprite	{
 /**
   *ReadSpriteFromFile reads a file in .spr format and outputs a new 'Sprite" object from it.
   * Params:
-  * filename =		The name of the file to read the sprite from.
+  *	filename =		The name of the file to read the sprite from.
   * Returns:  A new 'Sprite' object interpreted from the file.
 */
 public Sprite ReadSpriteFromFile(immutable(char)[] filename)	{ //Reads a sprite in my made up .spr format(trash, why does this even exist)

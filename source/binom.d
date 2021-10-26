@@ -123,7 +123,7 @@ public class OutBinom(X)  if(is(X : real))	{ //Class for the output of functions
 /**********************************************************************
   * This function returns the factorial of a number.
   * Params:
-  * f = 	is the number that the factorial is being performed on.
+  *	f = 	is the number that the factorial is being performed on.
   * Returns: The factorial of f.
 */
 public uint factorial(const uint f) pure nothrow @safe	{ //Bug Free
