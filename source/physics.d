@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
 /**Date: October 27, 2021*/
 /** License: GPL-3.0*/
-module physics;
-public import skeleton;
+module dutils.physics;
+public import dutils.skeleton;
 
 package mixin template __mov__general__(string func)
 {
