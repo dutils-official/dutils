@@ -1,5 +1,5 @@
 /*physics.d by Ruby The Roobster*/
-/*Version 0.35 testing*/
+/*Version 0.69 testing*/
 /*Module for basic physics in the D Programming Language 2.0*/
 /*This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -15,14 +15,22 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2021, Ruby The Roobster*/
 /**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
-/**Date: October 27, 2021*/
+/**Date: November 8, 2021*/
 /** License: GPL-3.0*/
 module dutils.physics;
 public import dutils.skeleton;
 
+public struct Gravity
+{
+	Axis axis = Axis.y;
+	real strength = 0;
+}
+
+public enum Axis { x, y, z}
+
 package mixin template __mov__general__(string func)
 {
-	void __mov__general__(real accdec = 0)
+	void __mov__general__(real accdec = 0, Gravity gravity = Gravity(Axis.y, 0))
 	{
 		import core.thread;
 		Point moveby;
@@ -44,7 +52,7 @@ package mixin template __mov__general__(string func)
 		}
 		while(!((tomove.center.x > moveto.x && moveto.x > 0) ^ (tomove.center.x < moveto.x && moveto.x < 0)))
 		{
-			static if(func == "a")
+			static if(func[0] == 'a')
 			{
 				speed += accdec;
 				if(b)
@@ -60,7 +68,7 @@ package mixin template __mov__general__(string func)
 					moveby.z = moveto.z * speed;
 				}
 			}
-			else static if(func == "d")
+			else static if(func[0] == 'd')
 			{
 				speed -= accdec;
 				if(b)
@@ -75,6 +83,9 @@ package mixin template __mov__general__(string func)
 					moveby.y = moveto.y * speed;
 					moveby.z = moveto.z * speed;
 				}
+			}
+			else
+			{
 			}
 			foreach(i;tomove.faces)
 			{
@@ -91,11 +102,11 @@ package mixin template __mov__general__(string func)
 			}
 			tomove.center += moveby;
 			Thread.sleep(dur!"msecs"(tbf));
-			static if(func == "a")
+			static if(func[0] == 'a')
 			{
 				speed += accdec;
 			}
-			else static if(func == "d")
+			else static if(func[0] == 'd')
 			{
 				speed -= accdec;
 			}
@@ -166,7 +177,7 @@ pragma(inline) public void decMove(Point moveto, uint tbf, shared ref Skeleton t
 	__mov__general__(accdec);
 }
 
-public bool detectCollision(shared Skeleton[] towatch, shared Skeleton skele, real time = 0)
+public bool detectCollision(in shared Skeleton[] towatch, shared Skeleton skele, real time = 0)
 	in	{
 		auto a = cast(ulong)time;
 		assert(a == time || time == real.infinity,"Parameter time must always be a whole number or infinity!");
@@ -177,7 +188,7 @@ public bool detectCollision(shared Skeleton[] towatch, shared Skeleton skele, re
 		auto sw = StopWatch(AutoStart.no);
 		sw.start();
 		scope(exit) sw.stop();
-		while(sw.peek.total!"msecs" <= time || time == real.infinity)
+		while(true)
 		{
 			foreach(i;towatch)
 			{
@@ -220,7 +231,7 @@ public bool detectCollision(shared Skeleton[] towatch, shared Skeleton skele, re
 													return true;
 												}
 											}
-											assert(false, "Hidden function switcho has a bug, file a pull request.");
+											assert(false, "Hidden function switcho has a bug, file an issue.");
 										}
 										if(switcho(l))
 											return true;
@@ -235,6 +246,8 @@ public bool detectCollision(shared Skeleton[] towatch, shared Skeleton skele, re
 					}
 				}
 			}
+			if(!(sw.peek.total!"msecs" <= time) && time != real.infinity)
+			    break;
 		}
 		return false;
 	}
@@ -252,5 +265,80 @@ package mixin template find(string[] tofind)
 			mixin("high" ~ i ~ " = tof[0]." ~ i ~ " >= tof[1]." ~ i ~ " ? tof[0]." ~ i ~ " : tof[1]." ~ i ~ ";");
 			mixin("low" ~ i ~ " = tof[0]." ~ i ~ " <= tof[1]." ~ i ~ " ? tof[0]." ~ i ~ " : tof[1]." ~ i ~ ";");
 		}
+	}
+}
+
+pragma(inline, true) public void affectByGravity(in shared Skeleton[] towatch, ref shared Skeleton toaffect, in uint tbf, Gravity gravity)
+{
+    import std.concurrency;
+	import core.thread;
+	import std.datetime;
+	auto child = spawn(&__detect_collide__, towatch, toaffect);
+	void __dumbswitchiepoo__dumb(ref shared Point l)
+	{
+		switch(gravity.axis)
+		{
+			case Axis.x:
+					if((gravity.strength > 0 && l.x > 0) ^ (gravity.strength < 0 && l.x < 0))
+						l.x = l.x - gravity.strength;
+					break;
+			case Axis.y:
+				if((gravity.strength > 0 && l.y > 0) ^ (gravity.strength < 0 && l.y < 0))				
+						l.y = l.y - gravity.strength;
+				break;
+			case Axis.z:
+				if((gravity.strength > 0 && l.z > 0) ^ (gravity.strength < 0 && l.z < 0))
+					l.z = l.z - gravity.strength;
+				break;
+			default:
+				throw new Exception("An error obviously caused by a library developer has occured.  Please file an issue.");
+		}
+	}
+	while(true)
+	{
+	    if(receiveTimeout(dur!"msecs"(1), function void(int x) { }))
+		{
+		    child.send(false);
+			break;
+		}
+		if(receiveTimeout(dur!"msecs"(1), function void(bool b) { }))
+		{
+		   while(true)
+		   {
+		   		if(receiveTimeout(dur!"msecs"(1), function void(bool b) { }))
+				{
+					break;
+				}
+		   }
+		}
+		foreach(ref i;toaffect.faces)
+		{
+		    foreach(ref j;i.lines)
+			{
+			    foreach(ref k;j.mid_points)
+				{
+					__dumbswitchiepoo__dumb(k);
+				}
+				__dumbswitchiepoo__dumb(j.start);
+				__dumbswitchiepoo__dumb(j.stop);
+			}
+			__dumbswitchiepoo__dumb(i.center);
+		}
+		__dumbswitchiepoo__dumb(toaffect.center);
+		Thread.sleep(dur!"msecs"(tbf - 2));
+	}
+}
+				
+
+package void __detect_collide__(in shared Skeleton[] towatch, shared Skeleton skele)
+{
+    import std.concurrency;
+	import std.datetime;
+	while(true)
+	{
+        if(detectCollision(towatch, skele, real.infinity))
+	        ownerTid.send(true);
+		if(receiveTimeout(dur!"msecs"(1), function void(bool x) { }))
+		    break;
 	}
 }
