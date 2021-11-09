@@ -1,5 +1,6 @@
+//TODO:  Change return type of detectCollide to be more detailed.
 /*physics.d by Ruby The Roobster*/
-/*Version 0.69 testing*/
+/*Version 1.0.0 release*/
 /*Module for basic physics in the D Programming Language 2.0*/
 /*This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -20,12 +21,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 module dutils.physics;
 public import dutils.skeleton;
 
+///Struct for representing gravity.
+/**Members:
+axis, the axis which the gravity pulls toward
+strength, the pull of the gravity per frame,
+*/
 public struct Gravity
 {
 	Axis axis = Axis.y;
 	real strength = 0;
 }
 
+///Enumeration for representing an axis.
+/**Values:
+Axis.x, the x-axis
+Axis.y, the y-axis
+Axis.z, the z-axis
+*/
 public enum Axis { x, y, z}
 
 package mixin template __mov__general__(string func)
@@ -132,51 +144,57 @@ package mixin template __mov__general__(string func)
 	}
 }
 
-/**
-  * move moves all the points in a skeleton to a specified point with a specified time gap between moving the points.
-  * Params:
-  *	moveto =	A point specifying the total amount to move along each axis.
-  * 	tbf =	The time in miliseconds between 'frames'(a frame is one section of moving points before waiting a bit).  This gives an illusion of continuous motion.
-  * 	tomove =	The skeleton being moved.
-  * 	speed =	The speed at which to move the points.
-  * Returns:
-  * none
-*/
+  ///move moves all the points in a skeleton to a specified point with a specified time gap between moving the points.
+  /**Params:
+  	moveto =	A point specifying the total amount to move along each axis.
+   	tbf =	The time in miliseconds between 'frames'(a frame is one section of moving points before waiting a bit).  This gives an illusion of continuous motion.
+   	tomove =	The skeleton being moved.
+   	speed =	The speed at which to move the points.*/
+  /**Returns:
+  none*/
 pragma(inline, true) public void move(Point moveto, uint tbf, ref shared Skeleton tomove, real speed)
 {
 	mixin __mov__general__!"n";
 	__mov__general__();
 }
 
-/**
-  * accMove moves all the points in a skeleton to a specified point with a specified time gap between movements all while accelerating the speed.
-  * Params:
-  *	moveto = 	A point specifying the total amount to move along each axis.
-  *	tbf = 	The time in miliseconds between 'frames'(a frame is one section of moving points before waiting a bit).  This gives an illusion of continuous motion.
-  *	tomove = 	The skeleton being moved.
-  *	speed  = 	The original speed at which the skeleton moves.
-  *	accdec = 	The amount to increment the speed by each frame.
-*/
+  ///accMove moves all the points in a skeleton to a specified point with a specified time gap between movements all while accelerating the speed.
+  /**Params:
+  	moveto = 	A point specifying the total amount to move along each axis.
+  	tbf = 	The time in miliseconds between 'frames'(a frame is one section of moving points before waiting a bit).  This gives an illusion of continuous motion.
+  	tomove = 	The skeleton being moved.
+  	speed  = 	The original speed at which the skeleton moves.
+  	accdec = 	The amount to increment the speed by each frame.*/
+  /**Returns: none*/
 pragma(inline, true) public void accMove(Point moveto, uint tbf, shared ref Skeleton tomove, real speed, real accdec = 0)
 {
 	mixin __mov__general__!"a";
 	__mov__general__(accdec);
 }
-/**
-  * decMove moves all the points in a skeleton to a specified point with a specified time gap between movements all while deaccelerating the speed.
-  * Params:
-  *	moveto = 	A point specifying the total amount to move along each axis.
-  *	tbf = 	The time in miliseconds between 'frames'(a frame is one section of moving points before waiting a bit).  This gives an illusion of continuous motion.
-  *	tomove = 	The skeleton being moved.
-  *	speed  = 	The original speed at which the skeleton moves.
-  *	accdec = 	The amount to decrement the speed by each frame.
-*/
+
+  ///decMove moves all the points in a skeleton to a specified point with a specified time gap between movements all while deaccelerating the speed.
+  /**Params:
+  	moveto = 	A point specifying the total amount to move along each axis.
+  	tbf = 	The time in miliseconds between 'frames'(a frame is one section of moving points before waiting a bit).  This gives an illusion of continuous motion.
+  	tomove = 	The skeleton being moved.
+  	speed  = 	The original speed at which the skeleton moves.
+  	accdec = 	The amount to decrement the speed by each frame.*/
+   /**Returns: none*/
 pragma(inline) public void decMove(Point moveto, uint tbf, shared ref Skeleton tomove, real speed, real accdec = 0)
 {
 	mixin __mov__general__!"d";
 	__mov__general__(accdec);
 }
 
+  ///detectCollision takes a skeleton, a wait time, and an array of skeletons, and detects collisions, returning true if so.
+  /**Params:
+        towatch =    A shared array of skeletons that the functions dectects collisions against.
+        skele =     A skeleton that the function dectects collisions against the array of skeletons with.
+        time =     The number of miliseconds to wait before exiting.  Infinete when set to real.infinity.
+  **/
+  /**Returns:
+  A boolean representing if a collision occurred.  Otherwise, none.
+  **/
 public bool detectCollision(in shared Skeleton[] towatch, shared Skeleton skele, real time = 0)
 	in	{
 		auto a = cast(ulong)time;
@@ -268,26 +286,33 @@ package mixin template find(string[] tofind)
 	}
 }
 
+///affectByGravity affects a skeleton by a specified gravity struct.  Send any integer to the thread containing the function to terminate it.
+/**Params:
+towatch =    A shared array of skeletons that is used for collision checking.
+toaffect =    A shared skeleton that is affected by gravity itself.
+tbf =  The wait time between frames in miliseconds, operations not included.  Set to at least 1, as the function spends 1 milisecond waiting for messages.
+gravity =    A gravity struct that gives the axis and strength specifications.
+*/
+/**Returns: none.*/
 pragma(inline, true) public void affectByGravity(in shared Skeleton[] towatch, ref shared Skeleton toaffect, in uint tbf, Gravity gravity)
 {
-    import std.concurrency;
+        import std.concurrency;
 	import core.thread;
 	import std.datetime;
-	auto child = spawn(&__detect_collide__, towatch, toaffect);
 	void __dumbswitchiepoo__dumb(ref shared Point l)
 	{
 		switch(gravity.axis)
 		{
 			case Axis.x:
-					if((gravity.strength > 0 && l.x > 0) ^ (gravity.strength < 0 && l.x < 0))
+					if((gravity.strength > 0 && l.x > 0) ^ (gravity.strength < 0 && l.x < 0) || detectCollision(towatch, skele, 0))
 						l.x = l.x - gravity.strength;
 					break;
 			case Axis.y:
-				if((gravity.strength > 0 && l.y > 0) ^ (gravity.strength < 0 && l.y < 0))				
+				if((gravity.strength > 0 && l.y > 0) ^ (gravity.strength < 0 && l.y < 0) || detectCollision(towatch, skele, 0))				
 						l.y = l.y - gravity.strength;
 				break;
 			case Axis.z:
-				if((gravity.strength > 0 && l.z > 0) ^ (gravity.strength < 0 && l.z < 0))
+				if((gravity.strength > 0 && l.z > 0) ^ (gravity.strength < 0 && l.z < 0) || detectCollision(towatch, skele, 0))
 					l.z = l.z - gravity.strength;
 				break;
 			default:
@@ -298,18 +323,7 @@ pragma(inline, true) public void affectByGravity(in shared Skeleton[] towatch, r
 	{
 	    if(receiveTimeout(dur!"msecs"(1), function void(int x) { }))
 		{
-		    child.send(false);
-			break;
-		}
-		if(receiveTimeout(dur!"msecs"(1), function void(bool b) { }))
-		{
-		   while(true)
-		   {
-		   		if(receiveTimeout(dur!"msecs"(1), function void(bool b) { }))
-				{
-					break;
-				}
-		   }
+		  break;
 		}
 		foreach(ref i;toaffect.faces)
 		{
@@ -325,20 +339,6 @@ pragma(inline, true) public void affectByGravity(in shared Skeleton[] towatch, r
 			__dumbswitchiepoo__dumb(i.center);
 		}
 		__dumbswitchiepoo__dumb(toaffect.center);
-		Thread.sleep(dur!"msecs"(tbf - 2));
-	}
-}
-				
-
-package void __detect_collide__(in shared Skeleton[] towatch, shared Skeleton skele)
-{
-    import std.concurrency;
-	import std.datetime;
-	while(true)
-	{
-        if(detectCollision(towatch, skele, real.infinity))
-	        ownerTid.send(true);
-		if(receiveTimeout(dur!"msecs"(1), function void(bool x) { }))
-		    break;
+		Thread.sleep(dur!"msecs"(tbf - 1));
 	}
 }
