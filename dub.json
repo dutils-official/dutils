@@ -3,7 +3,7 @@
 		"Ruby The Roobster"
 	],
 	"copyright": "Copyright © 2021, Ruby The Roobster",
-	"description": "A collection of packages in the D Programming Language made by me.",
+	"description": "A collection of modules in the D Programming Language that people may find useful.",
 	"license": "GLP-3.0",
 	"name": "dutils",
 	"importPaths": ["./source"],
@@ -17,7 +17,7 @@
 			"importPaths": ["./source"],
 			"sourceFiles": ["sprite.d"],
 			"dependencies":	{
-				"dutils:skeleton": "~>0.1.0"
+				"dutils:skeleton": "~>testing"
 			}
 		},
 		{
@@ -33,6 +33,16 @@
 			"targetType": "library",
 			"importPaths": ["./source"],
 			"sourceFiles": ["skeleton.d"]
+		},
+		{
+			"name": "physics",
+			"description": "A very simple and basic physics library.",
+			"targetType": "library",
+			"importPaths": ["./source"],
+			"sourceFiles": ["physics.d"],
+			"dependencies":	{
+				"dutils:skeleton": "~>testing"
+			}
 		}
 	]
 }
