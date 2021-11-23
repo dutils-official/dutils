@@ -22,23 +22,14 @@ module dutils.physics;
 public import dutils.skeleton;
 
 ///Struct for representing gravity.
-/**Members:
-axis, the axis which the gravity pulls toward
-strength, the pull of the gravity per frame,
-*/
 public struct Gravity
 {
-	Axis axis = Axis.y;
-	real strength = 0;
+	/** The axis which the gravity pulls toward.*/ Axis axis = Axis.y;
+	/** The strength per frame of the gravity. */ real strength = 0;
 }
 
 ///Enumeration for representing an axis.
-/**Values:
-Axis.x, the x-axis
-Axis.y, the y-axis
-Axis.z, the z-axis
-*/
-public enum Axis { x, y, z}
+public enum Axis { /**The x-axis.*/ x, /**The y-axis.*/y, /**The z-axis.*/ z}
 
 package mixin template __mov__general__(string func)
 {
@@ -172,29 +163,27 @@ pragma(inline, true) public void accMove(Point moveto, uint tbf, shared ref Skel
 	__mov__general__(accdec);
 }
 
-  ///decMove moves all the points in a skeleton to a specified point with a specified time gap between movements all while deaccelerating the speed.
-  /**Params:
+  /**decMove moves all the points in a skeleton to a specified point with a specified time gap between movements all while deaccelerating the speed.
+  Params:
   	moveto = 	A point specifying the total amount to move along each axis.
   	tbf = 	The time in miliseconds between 'frames'(a frame is one section of moving points before waiting a bit).  This gives an illusion of continuous motion.
   	tomove = 	The skeleton being moved.
   	speed  = 	The original speed at which the skeleton moves.
-  	accdec = 	The amount to decrement the speed by each frame.*/
-   /**Returns: none*/
+  	accdec = 	The amount to decrement the speed by each frame.
+   Returns: none*/
 pragma(inline) public void decMove(Point moveto, uint tbf, shared ref Skeleton tomove, real speed, real accdec = 0)
 {
 	mixin __mov__general__!"d";
 	__mov__general__(accdec);
 }
 
-  ///detectCollision takes a skeleton, a wait time, and an array of skeletons, and detects collisions, returning true if so.
-  /**Params:
+  /**detectCollision takes a skeleton, a wait time, and an array of skeletons, and detects collisions, returning true if so.
+  Params:
         towatch =    A shared array of skeletons that the functions dectects collisions against.
         skele =     A skeleton that the function dectects collisions against the array of skeletons with.
-        time =     The number of miliseconds to wait before exiting.  Infinete when set to real.infinity.
-  **/
-  /**Returns:
+        time =     The number of miliseconds to wait before exiting.  Infinete when set to real.infinity.Returns:
   A boolean representing if a collision occurred.  Otherwise, none.
-  **/
+  */
 public bool detectCollision(in shared Skeleton[] towatch, shared Skeleton skele, real time = 0)
 	in	{
 		auto a = cast(ulong)time;
@@ -286,14 +275,13 @@ package mixin template find(string[] tofind)
 	}
 }
 
-///affectByGravity affects a skeleton by a specified gravity struct.  Send any integer to the thread containing the function to terminate it.
-/**Params:
+/**affectByGravity affects a skeleton by a specified gravity struct.  Send any integer to the thread containing the function to terminate it.
+Params:
 towatch =    A shared array of skeletons that is used for collision checking.
 toaffect =    A shared skeleton that is affected by gravity itself.
 tbf =  The wait time between frames in miliseconds, operations not included.  Set to at least 1, as the function spends 1 milisecond waiting for messages.
 gravity =    A gravity struct that gives the axis and strength specifications.
-*/
-/**Returns: none.*/
+Returns: none.*/
 pragma(inline, true) public void affectByGravity(in shared Skeleton[] towatch, ref shared Skeleton toaffect, in uint tbf, Gravity gravity)
 {
         import std.concurrency;
