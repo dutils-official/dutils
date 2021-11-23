@@ -94,7 +94,7 @@ public class OutBinom(X)  if(is(X : real))	{ //Class for the output of functions
   Params:
   f = 	is the number that the factorial is being performed on.
   Returns: The factorial of f.*/
-public uint factorial(const uint f) pure nothrow @safe	{ //Bug Free
+public uint factorial(uint f) pure nothrow @safe	{ //Bug Free
 	if(f == 0 || f == 1)
 		return 1;
 	for(int x = f-1; x > 0; x--)	{
