@@ -194,7 +194,7 @@ public struct Collision
    Returns:
    A collision structure.
   */
-public Collision detectCollision(shared Skeleton[] towatch, shared Skeleton skele, in real time = 0)
+public Collision detectCollision(in shared Skeleton[] towatch, shared Skeleton skele, in real time = 0)
 	in	{
 		auto a = cast(ulong)time;
 		assert(a == time || time == real.infinity,"Parameter time must always be a whole number or infinity!");
@@ -323,7 +323,7 @@ pragma(inline, true) public void affectByGravity(in shared Skeleton[] towatch, r
 		{
 		  break;
 		}
-		foreach(ref i;toaffect.faces)
+		foreach(ref i;skele.faces)
 		{
 		    foreach(ref j;i.lines)
 			{
@@ -336,7 +336,7 @@ pragma(inline, true) public void affectByGravity(in shared Skeleton[] towatch, r
 			}
 			__dumbswitchiepoo__dumb(i.center);
 		}
-		__dumbswitchiepoo__dumb(toaffect.center);
+		__dumbswitchiepoo__dumb(skele.center);
 		Thread.sleep(dur!"msecs"(tbf - 1));
 	}
 }
