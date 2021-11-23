@@ -21,15 +21,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** License:  GPL-3.0**/
 module dutils.sprite;
 import dutils.skeleton : Point;
-/**Struct Color:  This data structure represents colors in the RGBA format.*/
+/**This data structure represents colors in the RGBA format.*/
 public struct Color	{
-	///Color.r is the 'R' value of the color.
+	///'R' value of the color.
 	ubyte r = 0;
-	///Color.g is the 'G' value of the color.
+	///'G' value of the color.
 	ubyte g = 0;
-	///Color.b is the 'B' value of the color.
+	///'B' value of the color.
 	ubyte b = 0;
-	//Color.a is the 'A' value of the color.
+	///'A' value of the color.
 	ubyte a = 255;
 	void opAssign(Color rhs)	{
 		this.r = rhs.r;
@@ -38,11 +38,11 @@ public struct Color	{
 		this.a = rhs.a;
 	}
 }
-/**Struct Sprite:  This data structure represents a sprite that would be painted over a face from dutils:skeleton*/
+/**This data structure represents a sprite that would be painted over a face from dutils:skeleton*/
 public struct Sprite	{
-	///Sprite.colors is the array of colors that are used within the Sprite.
+	///The array of colors that are used within the Sprite.
 	Color[] colors;
-	///Sprite.points is a two-demensional array of the points corresponding to each color.
+	///A two-demensional array of the points corresponding to each color.
 	Point[][] points;
 	invariant()	{
 		assert(colors.length == points.length, "Assertion failure: Sprite.colors.length and Sprite.points.length must always be equal...");
@@ -62,10 +62,10 @@ public struct Sprite	{
 	}
 }
 
-  ///ReadSpriteFromFile reads a file in .spr format and outputs a new 'Sprite" object from it.
-  /**Params:
-  filename =		The name of the file to read the sprite from.*/
-  /**Returns:  A new 'Sprite' object interpreted from the file.*/
+  /**ReadSpriteFromFile reads a file in .spr format and outputs a new 'Sprite" object from it.
+  Params:
+  filename =		The name of the file to read the sprite from.
+  Returns:  A new 'Sprite' object interpreted from the file.*/
 public Sprite ReadSpriteFromFile(immutable(char)[] filename)	{ //Reads a sprite in my made up .spr format(trash, why does this even exist)
 	ubyte[] ftext;
 	Color[] colors;

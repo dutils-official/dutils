@@ -135,13 +135,13 @@ package mixin template __mov__general__(string func)
 	}
 }
 
-  ///move moves all the points in a skeleton to a specified point with a specified time gap between moving the points.
-  /**Params:
+  /**move moves all the points in a skeleton to a specified point with a specified time gap between moving the points.
+  Params:
   	moveto =	A point specifying the total amount to move along each axis.
    	tbf =	The time in miliseconds between 'frames'(a frame is one section of moving points before waiting a bit).  This gives an illusion of continuous motion.
    	tomove =	The skeleton being moved.
-   	speed =	The speed at which to move the points.*/
-  /**Returns:
+   	speed =	The speed at which to move the points.
+  Returns:
   none*/
 pragma(inline, true) public void move(Point moveto, uint tbf, ref shared Skeleton tomove, real speed)
 {
@@ -149,14 +149,14 @@ pragma(inline, true) public void move(Point moveto, uint tbf, ref shared Skeleto
 	__mov__general__();
 }
 
-  ///accMove moves all the points in a skeleton to a specified point with a specified time gap between movements all while accelerating the speed.
-  /**Params:
+  /**accMove moves all the points in a skeleton to a specified point with a specified time gap between movements all while accelerating the speed.
+  Params:
   	moveto = 	A point specifying the total amount to move along each axis.
   	tbf = 	The time in miliseconds between 'frames'(a frame is one section of moving points before waiting a bit).  This gives an illusion of continuous motion.
   	tomove = 	The skeleton being moved.
   	speed  = 	The original speed at which the skeleton moves.
-  	accdec = 	The amount to increment the speed by each frame.*/
-  /**Returns: none*/
+  	accdec = 	The amount to increment the speed by each frame.
+  Returns: none*/
 pragma(inline, true) public void accMove(Point moveto, uint tbf, shared ref Skeleton tomove, real speed, real accdec = 0)
 {
 	mixin __mov__general__!"a";
@@ -177,14 +177,24 @@ pragma(inline) public void decMove(Point moveto, uint tbf, shared ref Skeleton t
 	__mov__general__(accdec);
 }
 
+///Collision is a structure representing if a collision happened, and the object collided with.
+public struct Collision
+{
+    ///True if the collision actually occured.
+    bool collided;
+	///The skeleton collided with.
+	shared Skeleton hitby;
+}
+
   /**detectCollision takes a skeleton, a wait time, and an array of skeletons, and detects collisions, returning true if so.
   Params:
         towatch =    A shared array of skeletons that the functions dectects collisions against.
         skele =     A skeleton that the function dectects collisions against the array of skeletons with.
-        time =     The number of miliseconds to wait before exiting.  Infinete when set to real.infinity.Returns:
-  A boolean representing if a collision occurred.  Otherwise, none.
+        time =     The number of miliseconds to wait before exiting.  Infinete when set to real.infinity.
+   Returns:
+   A collision structure.
   */
-public bool detectCollision(in shared Skeleton[] towatch, shared Skeleton skele, real time = 0)
+public Collision detectCollision(shared Skeleton[] towatch, shared Skeleton skele, in real time = 0)
 	in	{
 		auto a = cast(ulong)time;
 		assert(a == time || time == real.infinity,"Parameter time must always be a whole number or infinity!");
@@ -220,7 +230,7 @@ public bool detectCollision(in shared Skeleton[] towatch, shared Skeleton skele,
 												if(o == n.mid_points.length)
 												{
 													find([n.mid_points[o-1], n.stop]);
-													return true;
+													return Collision(true, i);
 												}
 												else
 												{
@@ -228,24 +238,24 @@ public bool detectCollision(in shared Skeleton[] towatch, shared Skeleton skele,
 												}
 												if(toswitch.x <= highx && toswitch.x >= lowx && toswitch.y <= highy && toswitch.y >= lowy && toswitch.z <= highz && toswitch.z >= lowz)
 												{
-													return true;
+													return Collision(true, i);
 												}
 												break;
 												case 0:
 												find([n.start, n.mid_points[o]]);
 												if(toswitch.x <= highx && toswitch.x >= lowx && toswitch.y <= highy && toswitch.y >= lowy && toswitch.z <= highz && toswitch.z >= lowz)
 												{
-													return true;
+													return Collision(true, i);
 												}
 											}
 											assert(false, "Hidden function switcho has a bug, file an issue.");
 										}
 										if(switcho(l))
-											return true;
+											return Collision(true, i);
 										if(switcho(k.start))
-											return true;
+											return Collision(true, i);
 										if(switcho(k.stop))
-											return true;
+											return Collision(true, i);
 									}
 								}
 							}
@@ -256,7 +266,7 @@ public bool detectCollision(in shared Skeleton[] towatch, shared Skeleton skele,
 			if(!(sw.peek.total!"msecs" <= time) && time != real.infinity)
 			    break;
 		}
-		return false;
+		return Collision(false, skele);
 	}
 
 package mixin template find(string[] tofind)
@@ -292,15 +302,15 @@ pragma(inline, true) public void affectByGravity(in shared Skeleton[] towatch, r
 		switch(gravity.axis)
 		{
 			case Axis.x:
-					if((gravity.strength > 0 && l.x > 0) ^ (gravity.strength < 0 && l.x < 0) || detectCollision(towatch, skele, 0))
+					if((gravity.strength > 0 && l.x > 0) ^ (gravity.strength < 0 && l.x < 0) || detectCollision(towatch, skele, 0).collided)
 						l.x = l.x - gravity.strength;
 					break;
 			case Axis.y:
-				if((gravity.strength > 0 && l.y > 0) ^ (gravity.strength < 0 && l.y < 0) || detectCollision(towatch, skele, 0))				
+				if((gravity.strength > 0 && l.y > 0) ^ (gravity.strength < 0 && l.y < 0) || detectCollision(towatch, skele, 0).collided)				
 						l.y = l.y - gravity.strength;
 				break;
 			case Axis.z:
-				if((gravity.strength > 0 && l.z > 0) ^ (gravity.strength < 0 && l.z < 0) || detectCollision(towatch, skele, 0))
+				if((gravity.strength > 0 && l.z > 0) ^ (gravity.strength < 0 && l.z < 0) || detectCollision(towatch, skele, 0).collided)
 					l.z = l.z - gravity.strength;
 				break;
 			default:

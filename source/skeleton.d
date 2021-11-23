@@ -18,13 +18,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /**Date: October 1, 2021*/
 /** License:  GPL-3.0*/
 module dutils.skeleton;
-/**Struct for representing a point.*/
+///Struct for representing a point.*/
 public struct Point	{ //Point structure...
-	///Point.x is the 'x' coordinate of the point.
+	///The x coordinate of the point.
 	real x;
-	///Point.y is the 'y' coordinate of the point.
+	///The y coordinate of the point.
 	real y;
-	///Point.z is the 'z' coordinate of the point.
+	///The z coordinate of the point.
 	real z;
 	this(real x, real y, real z)	{
 		this.x = x;
@@ -57,9 +57,9 @@ public struct Point	{ //Point structure...
 }
 /**Struct for representing a face of a skeleton that is made out of lines.*/
 public struct Face	{ //Face(of a 3D shape) structure...
-	///Face.lines is an array of all the lines that connect to form the face.
+	///Array of all the lines in a face.
 	Line[] lines;
-	///Face.center is the center point of the face.
+	///The center of the face.
 	Point center;
 	void opAssign(Face rhs)	{
 		this.lines.length = rhs.lines.length;
@@ -76,9 +76,9 @@ public struct Face	{ //Face(of a 3D shape) structure...
 }
 /**Struct for representing a 3D skeleton.*/
 public struct Skeleton	{ //Skeleton of a 3D structure...
-	///Skeleton.faces is an array of the faces that make up the Skeleton.
+	///Array of the faces that make up the skeleton.
 	Face[] faces;
-	///Skeleton.center is the center point of the skeleton.
+	///The center of the skeleton.
 	Point center;
 	void opAssign(Skeleton rhs)	{
 		this.faces.length = rhs.faces.length;
@@ -97,15 +97,13 @@ public struct Skeleton	{ //Skeleton of a 3D structure...
 }
 
 /**Struct for representing a line composed of at least a starting point and an end point.
-  *Notes:
-  *This struct doesn't check to make sure that the line made is an actual line and assumes the user knows what they are doing.
 */
 public struct Line	{ //Line struct...
-	///Line.mid_points is an array containing all of the points that are neither start nor end points.
+	///Array of all points that are not the start or end points.
 	Point[] mid_points;
-	///Line.start is the start point of the line.
+	///The start point of the line..
 	Point start;
-	///Line.end is the end point of the line.
+	///The end point of the line.
 	Point stop;
 	void opAssign(Line rhs)	{
 		this.start = rhs.start;
