@@ -43,7 +43,7 @@
 			"dependencies":	{
 				"dutils:skeleton": "~master"
 			}
-		}
+		},
 		{
 			"name": "transform",
 			"description": "A library with transformation functions.",
