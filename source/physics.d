@@ -194,7 +194,7 @@ public struct Collision
    Returns:
    A collision structure.
   */
-public Collision detectCollision(in shared Skeleton[] towatch, shared Skeleton skele, in real time = 0)
+public Collision detectCollision(shared Skeleton[] towatch, shared Skeleton skele, in real time = 0)
 	in	{
 		auto a = cast(ulong)time;
 		assert(a == time || time == real.infinity,"Parameter time must always be a whole number or infinity!");
@@ -292,7 +292,7 @@ skele =    A shared skeleton that is affected by gravity itself.
 tbf =  The wait time between frames in miliseconds, operations not included.  Set to at least 1, as the function spends 1 milisecond waiting for messages.
 gravity =    A gravity struct that gives the axis and strength specifications.
 Returns: none.*/
-pragma(inline, true) public void affectByGravity(in shared Skeleton[] towatch, ref shared Skeleton skele, in uint tbf, Gravity gravity)
+pragma(inline, true) public void affectByGravity(shared Skeleton[] towatch, ref shared Skeleton skele, in uint tbf, Gravity gravity)
 {
         import std.concurrency;
 	import core.thread;
