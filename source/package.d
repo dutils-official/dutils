@@ -19,3 +19,4 @@ public import dutils.binom;
 public import dutils.sprite;
 public import dutils.skeleton;
 public import dutils.physics;
+public import dutils.transform;

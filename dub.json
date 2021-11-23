@@ -44,5 +44,15 @@
 				"dutils:skeleton": "~master"
 			}
 		}
+		{
+			"name": "transform",
+			"description": "A library with transformation functions.",
+			"targetType": "library",
+			"importPaths": ["./source"],
+			"sourceFiles": ["transform.d"],
+			"dependencies": {
+				"dutils:skeleton": "~master"
+			}
+		}
 	]
 }
