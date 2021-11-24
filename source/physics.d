@@ -230,7 +230,7 @@ public Collision detectCollision(shared Skeleton[] towatch, shared Skeleton skel
 												if(o == n.mid_points.length)
 												{
 													find([n.mid_points[o-1], n.stop]);
-													return Collision(true, i);
+													return Collision(true, i).collided;
 												}
 												else
 												{
@@ -238,24 +238,24 @@ public Collision detectCollision(shared Skeleton[] towatch, shared Skeleton skel
 												}
 												if(toswitch.x <= highx && toswitch.x >= lowx && toswitch.y <= highy && toswitch.y >= lowy && toswitch.z <= highz && toswitch.z >= lowz)
 												{
-													return Collision(true, i);
+													return Collision(true, i).collided;
 												}
 												break;
 												case 0:
 												find([n.start, n.mid_points[o]]);
 												if(toswitch.x <= highx && toswitch.x >= lowx && toswitch.y <= highy && toswitch.y >= lowy && toswitch.z <= highz && toswitch.z >= lowz)
 												{
-													return Collision(true, i);
+													return Collision(true, i).collided;
 												}
 											}
 											assert(false, "Hidden function switcho has a bug, file an issue.");
 										}
 										if(switcho(l))
-											return Collision(true, i);
+											return Collision(true, i).collided;
 										if(switcho(k.start))
-											return Collision(true, i);
+											return Collision(true, i).collided;
 										if(switcho(k.stop))
-											return Collision(true, i);
+											return Collision(true, i).collided;
 									}
 								}
 							}

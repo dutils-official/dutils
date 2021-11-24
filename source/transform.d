@@ -20,7 +20,7 @@ public void move(in Point moveby, shared ref Skeleton skele)
 			    k += moveby;
 			}
 			j.start += moveby;
-			j.end += moveby;
+			j.stop += moveby;
 		}
 		i.center += moveby;
 	}
