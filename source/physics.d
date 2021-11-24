@@ -249,13 +249,13 @@ public Collision detectCollision(shared Skeleton[] towatch, shared Skeleton skel
 												}
 											}
 											assert(false, "Hidden function switcho has a bug, file an issue.");
-										}
+									}
 										if(switcho(l))
-											return Collision(true, i).collided;
+											return Collision(true, i);
 										if(switcho(k.start))
-											return Collision(true, i).collided;
+											return Collision(true, i);
 										if(switcho(k.stop))
-											return Collision(true, i).collided;
+											return Collision(true, i);
 									}
 								}
 							}
