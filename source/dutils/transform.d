@@ -11,11 +11,11 @@ public import dutils.skeleton;
 */
 public void move(in Point moveby, shared ref Skeleton skele)
 {
-    foreach(i;skele.faces)
+    foreach(ref i;skele.faces)
 	{
-	    foreach(j; i.lines)
+	    foreach(ref j; i.lines)
 		{
-		    foreach(k; j.mid_points)
+		    foreach(ref k; j.mid_points)
 			{
 			    k += moveby;
 			}
