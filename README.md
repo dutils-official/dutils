@@ -1,5 +1,5 @@
 # dutils
-A collection of(hopefully)useful modules in the D2 Programming Language.  NOTICE:  The "stable" branch has a big bug that will be fixed in the next beta, so please use the master branch to avoid excessive agony.
+A collection of(hopefully)useful modules in the D2 Programming Language.
 ## Changelog for dutils v0.1.2
 ### physics.d
 An all-new physics simple physics library has been integrated into dutils with this release.  Probably still has much to be desired.
