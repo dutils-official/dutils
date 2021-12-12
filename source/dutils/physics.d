@@ -1,4 +1,3 @@
-//TODO:  Change return type of detectCollide to be more detailed.
 /*physics.d by Ruby The Roobster*/
 /*Version 1.0.0 release*/
 /*Module for basic physics in the D Programming Language 2.0*/
