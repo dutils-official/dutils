@@ -18,7 +18,7 @@
 			"importPaths": ["./source"],
 			"sourceFiles": ["sprite.d"],
 			"dependencies":	{
-				"dutils:skeleton": "~master"
+				"dutils:skeleton": "~stable"
 			}
 		},
 		{
@@ -42,7 +42,7 @@
 			"importPaths": ["./source"],
 			"sourceFiles": ["physics.d"],
 			"dependencies":	{
-				"dutils:skeleton": "~master"
+				"dutils:skeleton": "~stable"
 			}
 		},
 		{
@@ -52,7 +52,7 @@
 			"importPaths": ["./source"],
 			"sourceFiles": ["transform.d"],
 			"dependencies": {
-				"dutils:skeleton": "~master"
+				"dutils:skeleton": "~stable"
 			}
 		}
 	]
