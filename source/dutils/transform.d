@@ -52,12 +52,12 @@ public void scale(in real scale, in Axis axis, ref shared Skeleton skele)
 				{
 				    foreach(ref k; j.mid_points)
 					{
-					    mixin("k." ~ a ~ " = k." ~ a ~ " * scale;");
+					    mixin("k." ~ a ~ " = ((k." ~ a ~ " - skele.center." ~ a ~ ") * scale) + skele.center." ~ a ~ ";");
 					}
-					mixin("j.stop." ~ a ~ " = j.stop." ~ a ~ " * scale;");
-					mixin("j.start." ~ a ~ " = j.start." ~ a ~ " * scale;");
+					mixin("j.stop." ~ a ~ " = ((j.stop." ~ a ~ " - skele.center." ~ a ~ ") * scale) + skele.center." ~ a ~ ";");
+					mixin("j.start." ~ a ~ " = ((j.start." ~ a ~ " - skele.center." ~ a ~ ") * scale) + skele.center." ~ a ~ ";");
 				}
-				mixin("i.center." ~ a ~ " = i.center." ~ a ~ " * scale;");
+				mixin("i.center." ~ a ~ " = ((i.center." ~ a ~ " - skele.center." ~ a ~ ") * scale) + skele.center." ~ a ~ ";");
 			}
 			mixin("break bruh;");
 		}
