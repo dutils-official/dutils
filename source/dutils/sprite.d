@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /**Date: October 1, 2021*/
 /** License:  GPL-3.0**/
 module dutils.sprite;
-import dutils.skeleton : Point;
+public import dutils.skeleton : Point;
 /**This data structure represents colors in the RGBA format.*/
 public struct Color	{
 	///'R' value of the color.
