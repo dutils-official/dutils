@@ -15,7 +15,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2021, Ruby The Roobster*/
 /**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
-/**Date: October 1, 2021*/
+/**Date: December 18, 2021*/
 /** License:  GPL-3.0*/
 module dutils.skeleton;
 ///Struct for representing a point.*/
@@ -78,7 +78,7 @@ public struct Face	{ //Face(of a 3D shape) structure...
 public struct Skeleton	{ //Skeleton of a 3D structure...
 	///Array of the faces that make up the skeleton.
 	Face[] faces;
-	///The center of the skeleton.
+	///The centroid of the skeleton.
 	Point center;
 	void opAssign(Skeleton rhs)	{
 		this.faces.length = rhs.faces.length;
@@ -94,7 +94,38 @@ public struct Skeleton	{ //Skeleton of a 3D structure...
 		}
 		this.center = rhs.center;
 	}
+	this(Face[] faces)
+	{
+	    this.faces = faces.dup;
+		this.center = x;
+	}
+		
 }
+
+package Point find(Skeleton skele)
+{
+    Point x = Point(0,0,0);
+	ulong count = 0;
+    foreach(i; skele.faces)
+	{
+	    foreach(j; i.lines)
+		{
+		    foreach(k; j.mid_points)
+			{
+			    ++count;
+                x += k;
+			}
+			count += 2;
+            x += j.start;
+			x += j.stop;
+		}
+	}
+	x /= count;
+	return x;
+}
+			
+			
+
 
 /**Struct for representing a line composed of at least a starting point and an end point.
 */
