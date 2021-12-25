@@ -29,6 +29,8 @@ public struct Gravity
 
 ///Enumeration for representing an axis.
 public enum Axis { /**The x-axis.*/ x, /**The y-axis.*/y, /**The z-axis.*/ z}
+///Enumeration for representing a plane.
+public enum Plane { /**Plane xy*/ xy, /**Plane xz*/ xz, /**Plane zy*/ zy}
 
 package mixin template __mov__general__(string func)
 {
