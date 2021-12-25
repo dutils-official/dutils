@@ -338,6 +338,68 @@ pragma(inline, true) public void affectByGravity(shared Skeleton[] towatch, ref 
 			__dumbswitchiepoo__dumb(i.center);
 		}
 		__dumbswitchiepoo__dumb(skele.center);
-		Thread.sleep(dur!"msecs"(tbf - 1));
+		Thread.sleep(dur!"msecs"(tbf));
+	}
+}
+
+/**Rotates a skeleton by an amount in radians in anamount of frames with a specifed time between frames.
+   Params:
+    degrees =    The number of radians to rotate the Skeleton by.
+	plane =    The plane to rotate the Skeleton on.
+	frames =    The number of frames to rotate the Skeleton in.
+	rate =    The amount of time in miliseconds to wait between processing each frame.
+	skele =    The Skeleton to rotate.
+*/
+public void rotate(in real degrees, in Plane plane, in ulong frames, in ulong rate, ref shared Skeleton skele)
+{
+    ulong fcounter = 0;
+    assert(frames != 0); //Prevent division by 0.
+    import std.math.algebraic : abs;
+	import std.math.trigonometry : sin;
+	import std.math.trigonometry: cos;
+	import core.thread;
+    bruh:
+	switch(plane)
+	{
+	    static foreach(a; ["xy", "xz", "zy"])
+		{
+		    mixin("case Plane." ~ a ~ ":");
+			while(fcounter <= frames)
+			{
+			    foreach(ref i; skele.faces)
+			    {
+			        foreach(ref j; i.lines)
+				    {
+				        foreach(ref k; j.mid_points)
+				    	{
+				    	    mixin("real radius = abs(cast(real)(skele.center." ~ [a[0]] ~ " - k." ~ [a[0]] ~ "));"); //Define the radius of the circle of rotation.
+				    		//Do the rotation thingy.
+				    		mixin("k." ~ [a[0]] ~ " = (cos(degrees/frames) * radius) + skele.center." ~ [a[0]] ~ ";");
+				    		//As above
+					    	mixin("radius = abs(cast(real)(skele.center." ~ [a[1]] ~ " - k." ~ [a[1]] ~ "));");
+					    	mixin("k." ~ [a[1]] ~ " = (sin(degrees/frames) * radius) + skele.center." ~ [a[1]] ~ ";");
+				    	}
+                        //Rinse and Repeat!
+                        mixin("real radius = abs(cast(real)(skele.center." ~ [a[0]] ~ " - j.start." ~ [a[0]] ~ "));");
+				    	mixin("j.start." ~ [a[0]] ~ " = (cos(degrees/frames) * radius) + skele.center." ~ [a[0]] ~ ";");
+					    mixin("radius = abs(cast(real)(skele.center." ~ [a[1]] ~ " - j.start." ~ [a[1]] ~ "));");
+					    mixin("j.start." ~ [a[1]] ~ " = (sin(degrees/frames) * radius) + skele.center." ~ [a[1]] ~ ";");
+					    mixin("radius = abs(cast(real)(skele.center." ~ [a[0]] ~ " - j.stop." ~ [a[0]] ~ "));");
+					    mixin("j.stop." ~ [a[0]] ~ " = (cos(degrees/frames) * radius) + skele.center." ~ [a[0]] ~ ";");
+				    	mixin("radius = abs(cast(real)(skele.center." ~ [a[1]] ~ " - j.stop." ~ [a[1]] ~ "));");
+				    	mixin("j.stop." ~ [a[1]] ~ " = (sin(degrees/frames) * radius) + skele.center." ~ [a[1]] ~ ";");
+				    }
+			    	mixin("real radius = abs(cast(real)(skele.center." ~ [a[0]] ~ " - i.center." ~ [a[0]] ~ "));");
+			    	mixin("i.center." ~ [a[0]] ~ " = (cos(degrees/frames) * radius) + skele.center." ~ [a[0]] ~ ";");
+				    mixin("radius = abs(cast(real)(skele.center." ~ [a[1]] ~ " - i.center." ~ [a[1]] ~ "));");
+				    mixin("i.center." ~ [a[1]] ~ " = (sin(degrees/frames) * radius) + skele.center." ~ [a[1]] ~ ";");
+			    }
+				Thread.sleep(dur!"msecs"(rate)); //Time between frames.
+				++fcounter;
+			}
+			mixin("break bruh;");
+		}
+		default:
+		    throw new Exception("Invalid Plane, somehow.  Either I screwed up or you did.  If you didn't touch the code, open an issue.");
 	}
 }
