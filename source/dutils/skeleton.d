@@ -1,5 +1,5 @@
 /*skeleton.d by Ruby The Roobster*/
-/*Version 1.0 Release*/
+/*Version 1.0.1 Release*/
 /*Module for representing skeletons in the D Programming Language 2.0*/
 /*This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -15,10 +15,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2021, Ruby The Roobster*/
 /**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
-/**Date: December 18, 2021*/
+/**Date: December 22, 2021*/
 /** License:  GPL-3.0*/
 module dutils.skeleton;
-///Struct for representing a point.*/
+/**Structure for representing a point.*/
 public struct Point	{ //Point structure...
 	///The x coordinate of the point.
 	real x;
@@ -41,18 +41,35 @@ public struct Point	{ //Point structure...
 		this.y = rhs.y;
 		this.z = rhs.z;
 	}
-
 	void opOpAssign(string op)(Point rhs)	{
-		mixin("this.x " ~ op ~ "= rhs.x;");
-		mixin("this.y " ~ op ~ "= rhs.y;");
-		mixin("this.z " ~ op ~ "= rhs.z;");
+        this = this.opBinary!op(rhs);
 	}
 	void opOpAssign(string op)(Point rhs) shared	{
-		synchronized	{
-			mixin("this.x = this.x " ~ op ~ " rhs.x;");
-			mixin("this.y = this.y " ~ op ~ " rhs.y;");
-			mixin("this.z = this.z " ~ op ~ " rhs.z;");
-		}
+        this = this.opBinary!op(rhs);
+	}
+	void opOpAssign(string op)(real rhs)
+	{
+        this = this.opBinary!op(rhs); 
+	}
+	void opOpAssign(string op)(real rhs) shared
+	{
+	    this = this.opBinary!op(rhs);
+	}
+	Point opBinary(string op)(Point rhs)
+	{
+	    mixin("return Point(this.x " ~ op ~ " rhs.x, this.y " ~ op ~ " rhs.y, this.z " ~ op ~ " rhs.z);");
+	}
+	Point opBinary(string op)(shared Point rhs) shared
+	{
+	    mixin("return cast(shared(Point))Point(this.x " ~ op ~ " rhs.x, this.y " ~ op ~ " rhs.y, this.z " ~ op ~ " rhs.z);");
+	}
+	Point opBinary(string op)(real rhs)
+	{
+	    mixin("return Point(this.x " ~ op ~ "rhs, this.y " ~ op ~ "rhs, this.z " ~ op ~ "rhs);");
+	}
+	Point opBinary(string op)(real rhs) shared
+	{
+	    mixin("return cast(shared(Point))Point(this.x " ~ op ~ "rhs, this.y " ~ op ~ "rhs, this.z " ~ op ~ "rhs);");
 	}
 }
 /**Struct for representing a face of a skeleton that is made out of lines.*/
@@ -72,6 +89,16 @@ public struct Face	{ //Face(of a 3D shape) structure...
 		foreach(i;0 .. this.lines.length)	{
 			this.lines[i] = rhs.lines[i];
 		}
+	}
+	this(Line[] lines)
+	{
+	   this.lines = lines.dup;
+	   this.center = find(Skeleton([this]));
+	}
+	this(Line[] lines) shared
+	{
+	    this.lines = cast(shared(Line[]))(cast(Line[])lines).dup;
+		this.center = cast(shared(Point))find(cast(Skeleton)Skeleton(cast(Face[])[this]));
 	}
 }
 /**Struct for representing a 3D skeleton.*/
@@ -97,7 +124,12 @@ public struct Skeleton	{ //Skeleton of a 3D structure...
 	this(Face[] faces)
 	{
 	    this.faces = faces.dup;
-		this.center = x;
+		this.center = find(this);
+	}
+	this(shared(Face)[] faces) shared
+	{
+	    this.faces = faces.dup;
+		this.center = cast(shared(Point))find(cast(Skeleton)this);
 	}
 		
 }
@@ -122,10 +154,7 @@ package Point find(Skeleton skele)
 	}
 	x /= count;
 	return x;
-}
-			
-			
-
+}		
 
 /**Struct for representing a line composed of at least a starting point and an end point.
 */
