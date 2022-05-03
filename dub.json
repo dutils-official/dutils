@@ -6,54 +6,39 @@
 	"description": "A collection of modules in the D Programming Language that people may find useful.",
 	"license": "GLP-3.0",
 	"name": "dutils",
-	"importPaths": ["./source"],
-	"sourcePaths": ["./source"],
-	"sourceFiles": ["./source/dutils/package.d"],
-	"targetType": "library",
+	"importPaths": ["./source/dutils"],
+	"sourceFiles": ["package.d"],
 	"subPackages": [
 		{
 			"name": "sprite",
 			"description": ".spr file format for images because I'm to lazy to use a preexisting one for sprites.",
 			"targetType": "library",
-			"importPaths": ["./source"],
-			"sourceFiles": ["./source/dutils/sprite.d"],
+			"importPaths": ["./source/dutils"],
+			"sourceFiles": ["sprite.d"],
 			"dependencies":	{
-				"dutils:skeleton": "~master"
+				"dutils:skeleton": "*"
 			}
 		},
 		{
 			"name": "binom",
 			"description": "Module for doing some bionomial work in the D Programming Language(why did I make this).",
 			"targetType": "library",
-			"importPaths": ["./source"],
-			"sourceFiles": ["/source/dutils/binom.d"]
+			"importPaths": ["./source/dutils"],
+			"sourceFiles": ["binom.d"]
 		},
 		{
-			"name": "skeleton",
-			"description": "Module for implementing skeletons, e.g. a cube with criss-crossing beams to better detect collision.",
+			"name": "math",
+			"description": "General D math library."
 			"targetType": "library",
-			"importPaths": ["./source"],
-			"sourceFiles": ["/source/dutils/skeleton.d"]
-		},
+			"importPaths": ["./source/dutils/math"],
+			"sourceFiles": ["package.d"]
+		}
+	],
+	"configurations":  [
 		{
-			"name": "physics",
-			"description": "A very simple and basic physics library.",
-			"targetType": "library",
-			"importPaths": ["./source"],
-			"sourceFiles": ["/source/dutils/physics.d"],
-			"dependencies":	{
-				"dutils:skeleton": "~master"
-			}
-		},
-		{
-			"name": "transform",
-			"description": "A library with transformation functions.",
-			"targetType": "library",
-			"importPaths": ["./source"],
-			"sourceFiles": ["/source/dutils/transform.d"],
-			"dependencies": {
-				"dutils:skeleton": "~master"
-			}
+			"name": "shared",
+			"targetType": "dynamicLibrary",
+			"versions": ["DLL"]
 		}
 	]
 }

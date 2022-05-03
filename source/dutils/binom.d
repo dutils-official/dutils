@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 module dutils.binom;
 
 ///Class: Output of member functions of InBinom
+//TODO:ADD DLL
 public class OutBinom(X)  if(is(X : real))	{ //Class for the output of functions involving binomials
 	private:
 	uint[] coefficiants;

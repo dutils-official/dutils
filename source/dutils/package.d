@@ -10,13 +10,22 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
-/** Copyright: 2021, Ruby The Roobster*/
-/**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
-/**Date: October 1, 2021*/
+/** Copyright: 2022, Ruby The Roobster*/
+/**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
+/**Date: January 19, 2021*/
 /** License:  GPL-3.0**/
 module dutils;
-public import dutils.binom;
-public import dutils.sprite;
-public import dutils.skeleton;
-public import dutils.physics;
-public import dutils.transform;
+
+version(DLL)
+{
+	mixin("export:");
+}
+
+else
+{
+	mixin("public:");
+}
+
+import dutils.binom;
+import dutils.shape;
+import dutils.math;
