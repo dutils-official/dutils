@@ -27,5 +27,8 @@ else
 }
 
 import dutils.binom;
-import dutils.shape;
+import dutils.physics;
+import dutils.skeleton;
+import dutils.transform;
+import dutils.sprite;
 import dutils.math;
