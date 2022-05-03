@@ -28,7 +28,7 @@
 		},
 		{
 			"name": "math",
-			"description": "General D math library."
+			"description": "General D math library.",
 			"targetType": "library",
 			"importPaths": ["./source/dutils/math"],
 			"sourceFiles": ["package.d"]
