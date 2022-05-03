@@ -44,45 +44,54 @@ package interface mType
 
 /**************************************************
  * Validates the math library's fucntion syntax.
+ *
  * TODO: Make syntax rules modular.
  *
  * Params:
  *     funcbody = The body of the function to validate.
- * Returns: true if the function has correct syntax, false otherwise.
+ * Returns: true if the function has correct syntax,
+ *          false otherwise.
  */
-bool validateFunction(dstring funcbody) pure @safe @nogc
+bool validateFunction(dstring funcbody) nothrow pure @safe @nogc
 {
-	import std.uni : isSpace;
+	import std.uni : isSpace, isNumber;
 	
-	uint indentation = 0;
-	bool isOp = false;
-	bool isNum = false;
-	bool isDec = false;
-	ubyte powCount = 0;
+	long indentation = 0; //Indentation level;
+	bool isOp = false;  //If there is a current operator being used.
+	bool isNum = false;  //If there is currently a number in use.
+	bool isDec = false; //If there is already a decimal point in the number.
+    bool isx = false;  //If the current number is 'x'.
+    bool isEverNum = false;  //If there is at least one number in the function body.
+	ubyte powCount = 0; //Internal counter for ^^ operator.
 	
 	foreach(c; funcbody)
 	{
-	    switch(c)
+	    Switch: switch(c)
 		{
 			case cast(dchar)'x':
+                isx = true;
 				isOp = false;
-			    continue;
-				break;
+                isNum = true;
+                isEverNum = true;
+                isDec = false;
+			    break;
 				
-			static foreach(x; [cast(dchar)'+', cast(dchar)'-', cast(dchar)'*', cast(dchar)'/'])
+			static foreach(x; [cast(dchar)'+', cast(dchar)'-', cast(dchar)'*', cast(dchar)'/']) //Iterate over validating the basic four operators.
 			{
 				case x:
-					if(isOp)
+					if(isOp || !isNum)
 						return false;
 						
 					isOp = true;
 					powCount = 0;
-					continue;
-				    break;
+                    isNum = false;
+                    isDec = false;
+                    isx = false;
+					break Switch;
 			}
 			
-			case cast(dchar)'^':
-				if(isOp)
+			case cast(dchar)'^': //Take care of exponents.
+				if(isOp || !isNum)
 					return false;
 					
 				switch(powCount)
@@ -97,10 +106,134 @@ bool validateFunction(dstring funcbody) pure @safe @nogc
 					default:
 						return false;
 				}
-				continue;
+                isNum = false;
+                isDec = false;
+                isx = false;
 				break;
-				
+            case cast(dchar)'(': //Indentation
+                ++indentation;
+                break;
+            case cast(dchar)')':
+                --indentation;
+                break;
 			default:
-				
+			     if(isNumber(c) || c == cast(dchar)'i') //Imaginary numbers are numbers.
+                 {
+                    isNum = true;
+                    isx = false;
+                    isEverNum = true;
+                    isOp = false;
+                    break;
+                 }
+                 else if(c == cast(dchar)'.')  //Dissallow multiple decimal points.
+                 {
+                    if(!isDec && isNum && !isx)
+                        isDec = true;
+                    else
+                        return false;
+                    break;
+                 }
+                 else if(isSpace(c))
+                    break;
+                 else
+                    return false;
+        }
+    }
+    if(indentation != 0 || !isEverNum || powCount != 0 || isOp)  //Final conditions that have to be met.
+        return false;
     return true;
+}
+
+///
+unittest
+{
+    dstring func = "x + 1"d;
+    assert(validateFunction(func));
+    func = "x^^2 + 2^^2 j- 3"d;
+    assert(!validateFunction(func));
+    func = "x.3";
+    assert(!validateFunction(func));
+    func = "()";
+    assert(!validateFunction(func));
+    func = "x ^ 3";
+    assert(!validateFunction(func));
+    func = "x +";
+    assert(!validateFunction(func));
+    assert(!validateFunction("x ++ 1"d));
+}
+
+/*******************************************************************
+ * Registers a function with the given name and function body.
+ * 
+ * Params:
+ *     funcdef = The definition of the function to register.
+ *     funcbody = The body of the function to register.
+ *
+ * Returns:
+ *     True if the function successfuly registers, false
+ *     otherwise.
+ */
+bool registerFunction(dstring funcdef, dstring funcbody) @safe nothrow
+{
+    uint index = 0;
+    bool openParam = false;
+    Loop:
+    for (uint i = 0; i < funcdef.length; i++) //Make sure the function is defined along the lines of a(x) = num(num).
+    {
+        switch(funcdef[i])
+        {
+            case cast(dchar)'=':
+                 if(openParam)
+                    return false;
+                 index = i;
+                 break Loop;
+            case cast(dchar)'(':
+                if(openParam)
+                    return false;
+                index = i;
+                openParam = true;
+                break;
+            case cast(dchar)')':
+                if(!openParam)
+                    return false;
+                openParam = false;
+                break;
+            default:
+                if(index == i-1 && openParam)
+                {
+                    if(funcdef[i] != cast(dchar)'x')
+                        return false;
+                }
+        }
+    }
+    
+    if(funcdef[index .. $] != "= num(num)"d)
+        return false;            
+                
+    if(validateFunction(funcbody) && funcdef !in funcList) //Validate the function and make sure that it isn't already defined.
+    {
+        funcList[funcdef] = funcbody;
+        return true;
+    }
+    return false;
+}
+
+///
+unittest
+{
+    dstring func = "x + 1"d;
+    assert(registerFunction("a(x) = num(num)"d,func));
+    func = "x^^2 + 2^^2 j- 3"d;
+    assert(!registerFunction("a(x) = num(num)"d,func));
+    func = "x.3";
+    assert(!registerFunction("a(x) = num(num)"d,func));
+    func = "()";
+    assert(!registerFunction("a(x) = num(num)"d,func));
+    func = "x ^ 3";
+    assert(!registerFunction("a(x) = num(num)"d,func));
+    func = "x +";
+    assert(!registerFunction("a(x) = num(num)"d,func));
+    assert(!registerFunction("a(x) = num(num)"d,"x ++ 1"d));
+    assert(registerFunction("b(x) = num(num)"d, "x"d));
+    assert(!registerFunction("a(x) = num(num)"d, "x"d));
 }
