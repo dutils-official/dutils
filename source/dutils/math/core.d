@@ -69,7 +69,7 @@ bool validateFunction(dstring funcbody) pure @safe @nogc
 			    continue;
 				break;
 				
-			static foreach(x, [cast(dchar)'+', cast(dchar)'-', cast(dchar)'*', cast(dchar)'/'])
+			static foreach(x; [cast(dchar)'+', cast(dchar)'-', cast(dchar)'*', cast(dchar)'/'])
 			{
 				case x:
 					if(isOp)
