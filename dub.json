@@ -2,43 +2,68 @@
 	"authors": [
 		"Ruby The Roobster"
 	],
-	"copyright": "Copyright © 2021, Ruby The Roobster",
-	"description": "A collection of modules in the D Programming Language that people may find useful.",
-	"license": "GLP-3.0",
-	"name": "dutils",
-	"importPaths": ["./source/dutils"],
-	"sourceFiles": ["package.d"],
-	"subPackages": [
+	"configurations": [
 		{
-			"name": "sprite",
-			"description": ".spr file format for images because I'm to lazy to use a preexisting one for sprites.",
-			"targetType": "library",
-			"importPaths": ["./source/dutils"],
-			"sourceFiles": ["sprite.d"],
-			"dependencies":	{
-				"dutils:skeleton": "*"
-			}
+			"name": "standard",
+			"targetType": "library"
 		},
-		{
-			"name": "binom",
-			"description": "Module for doing some bionomial work in the D Programming Language(why did I make this).",
-			"targetType": "library",
-			"importPaths": ["./source/dutils"],
-			"sourceFiles": ["binom.d"]
-		},
-		{
-			"name": "math",
-			"description": "General D math library.",
-			"targetType": "library",
-			"importPaths": ["./source/dutils/math"],
-			"sourceFiles": ["package.d"]
-		}
-	],
-	"configurations":  [
 		{
 			"name": "shared",
 			"targetType": "dynamicLibrary",
-			"versions": ["DLL"]
+			"versions": [
+				"DLL"
+			]
+		}
+	],
+	"copyright": "Copyright © 2022, Ruby The Roobster",
+	"dependencies": {
+		"silly": "~>1.1.1"
+	},
+	"description": "A collection of modules in the D Programming Language that people may find useful.",
+	"importPaths": [
+		"./source/dutils"
+	],
+	"license": "GLP-3.0",
+	"name": "dutils",
+	"sourceFiles": [
+		"./source/dutils/package.d"
+	],
+	"subPackages": [
+		{
+			"dependencies": {
+				"dutils:skeleton": ">=0.0.0"
+			},
+			"description": ".spr file format for images because I'm to lazy to use a preexisting one for sprites.",
+			"importPaths": [
+				"./source/dutils"
+			],
+			"name": "sprite",
+			"sourceFiles": [
+				"sprite.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"description": "Module for doing some bionomial work in the D Programming Language(why did I make this).",
+			"importPaths": [
+				"./source/dutils"
+			],
+			"name": "binom",
+			"sourceFiles": [
+				"binom.d"
+			],
+			"targetType": "library"
+		},
+		{
+			"description": "General D math library.",
+			"importPaths": [
+				"./source/dutils/math"
+			],
+			"name": "math",
+			"sourceFiles": [
+				"package.d"
+			],
+			"targetType": "library"
 		}
 	]
 }
