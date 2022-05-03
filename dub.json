@@ -7,7 +7,7 @@
 	"license": "GLP-3.0",
 	"name": "dutils",
 	"importPaths": ["./source"],
-	"sourcePaths": ["./source"],
+	"sourcePaths": ["./source/dutils"],
 	"sourceFiles": ["package.d"],
 	"targetType": "library",
 	"subPackages": [
@@ -15,7 +15,7 @@
 			"name": "sprite",
 			"description": ".spr file format for images because I'm to lazy to use a preexisting one for sprites.",
 			"targetType": "library",
-			"importPaths": ["./source"],
+			"importPaths": ["./source/dutils"],
 			"sourceFiles": ["sprite.d"],
 			"dependencies":	{
 				"dutils:skeleton": "~master"
@@ -25,21 +25,21 @@
 			"name": "binom",
 			"description": "Module for doing some bionomial work in the D Programming Language(why did I make this).",
 			"targetType": "library",
-			"importPaths": ["./source"],
+			"importPaths": ["./source/dutils"],
 			"sourceFiles": ["binom.d"]
 		},
 		{
 			"name": "skeleton",
 			"description": "Module for implementing skeletons, e.g. a cube with criss-crossing beams to better detect collision.",
 			"targetType": "library",
-			"importPaths": ["./source"],
+			"importPaths": ["./source/dutils"],
 			"sourceFiles": ["skeleton.d"]
 		},
 		{
 			"name": "physics",
 			"description": "A very simple and basic physics library.",
 			"targetType": "library",
-			"importPaths": ["./source"],
+			"importPaths": ["./source/dutils"],
 			"sourceFiles": ["physics.d"],
 			"dependencies":	{
 				"dutils:skeleton": "~master"
@@ -49,7 +49,7 @@
 			"name": "transform",
 			"description": "A library with transformation functions.",
 			"targetType": "library",
-			"importPaths": ["./source"],
+			"importPaths": ["./source/dutils"],
 			"sourceFiles": ["transform.d"],
 			"dependencies": {
 				"dutils:skeleton": "~master"
