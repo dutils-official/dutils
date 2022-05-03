@@ -6,7 +6,7 @@
 	"description": "A collection of modules in the D Programming Language that people may find useful.",
 	"license": "GLP-3.0",
 	"name": "dutils",
-	"importPaths": ["./source"],
+	"importPaths": ["./source/dutils"],
 	"sourcePaths": ["./source/dutils"],
 	"sourceFiles": ["package.d"],
 	"targetType": "library",
