@@ -17,6 +17,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
 /**Date: December 22, 2021*/
 /** License:  GPL-3.0*/
+version(DLL)
+{
+}
+else{
 module dutils.transform;
 
 public import dutils.skeleton;
@@ -163,4 +167,5 @@ public void fullScale(in real scale, ref shared Skeleton skele)
 		}
 		i.center = ((i.center - skele.center) * scale) + skele.center;
 	}
+}
 }
