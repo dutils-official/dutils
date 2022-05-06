@@ -28,5 +28,5 @@ All functions definitions with a number input and a number output shall be of th
 
 ## Removing a function
 
-Removing any function can be done as long as the function is registered and isn't untouchable.  Untouchsable functions are ln(x) = num(num), sin(x) = num(num), cos(x) = num(num),
+Removing any function can be done as long as the function is registered and isn't untouchable.  Untouchable functions are ln(x) = num(num), sin(x) = num(num), cos(x) = num(num),
 tan(x) = num(num), csc(x) = num(num), sec(x) = num(num), cot(x) = num(num). Γ(x) = num(num), and δ(x) = num(num).
