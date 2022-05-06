@@ -258,6 +258,7 @@ unittest
     assert(!registerFunction("a(x) = num(num)"d,func));
     assert(!registerFunction("a(x) = num(num)"d,"x ++ 1"d));
     assert(registerFunction("b(x) = num(num)"d, "x"d));
+    registerFunction("a(x) = num(num)"d,func) //Fails on MacOS without this.
     assert(!registerFunction("a(x) = num(num)"d, "x"d));
 }
 
