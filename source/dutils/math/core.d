@@ -15,10 +15,13 @@ import std.complex;
 alias Operator = dstring function(dstring input);
 
 //List of all operations.
-package Operator[dstring] opList;
+package shared Operator[dstring] opList;
 
 //List of all functions.
-package dstring[dstring] funcList;
+package shared dstring[dstring] funcList;
+
+//Functions that may not be deleted.
+package shared dstring[dstring] noTouch;
 
 //Initialize the basic arithmetic operations to null: these will be handled by operator overloading.
 shared static this()
@@ -30,6 +33,19 @@ shared static this()
 	opList["^^"d] = null;
 }
 
+//Add the neccessary functions to noTouch.
+shared static this()
+{
+    noTouch["ln(x) = num(num)"d] = null;
+    noTouch["sin(x) = num(num)"d] = null;
+    noTouch["cos(x) = num(num)"d] = null;
+    noTouch["tan(x) = num(num)"d] = null;
+    noTouch["csc(x) = num(num)"d] = null;
+    noTouch["sec(x) = num(num)"d] = null;
+    noTouch["cot(x) = num(num)"d] = null;
+    noTouch["Γ(x) = num(num)"d] = null;
+    noTouch["δ(x) = num(num)"d] = null;
+}
 //An interface that serves as the basis for all math types.
 package interface mType
 {
@@ -164,6 +180,8 @@ unittest
 
 /*******************************************************************
  * Registers a function with the given name and function body.
+ * A function cannot register if its body has invalid syntax or if
+ * its definition has already been used.
  * 
  * Params:
  *     funcdef = The definition of the function to register.
@@ -175,8 +193,13 @@ unittest
  */
 bool registerFunction(dstring funcdef, dstring funcbody) @safe nothrow
 {
+    import std.string : strip;
+    
     uint index = 0;
     bool openParam = false;
+
+    funcdef = cast(dstring)(cast(string)funcdef.strip); //Strip all whitespace, so to allow the user more freedom.
+    
     Loop:
     for (uint i = 0; i < funcdef.length; i++) //Make sure the function is defined along the lines of a(x) = num(num).
     {
@@ -236,4 +259,36 @@ unittest
     assert(!registerFunction("a(x) = num(num)"d,"x ++ 1"d));
     assert(registerFunction("b(x) = num(num)"d, "x"d));
     assert(!registerFunction("a(x) = num(num)"d, "x"d));
+}
+
+/*******************************************************
+ * Removes a registered function given its definition.
+ *
+ * The function being removed must be registered and must
+ * not be an untouchable function.
+ *
+ * Params:
+ *     funcdef = The definition of the function to remove.
+ * Returns:
+ *     True if the function is succesfully removed, false
+ *     otherwise.
+ */
+bool removeFunction(dstring funcdef) @safe @nogc nothrow
+{
+    if(funcdef !in funcList || funcdef in noTouch) //Make sure that the function acutally exists and isn't non-removable.
+        return false;
+    funcList.remove(funcdef);
+    return true;
+}
+
+///
+unittest
+{
+    dstring func = "x + 1"d;
+    assert(!removeFunction("a(x) = num(num)"d));
+    funcList["δ(x) = num(num)"d] = null;
+    assert(!removeFunction("δ(x) = num(num)"d));
+    funcList.remove("δ(x) = num(num)");
+    registerFunction("a(x) = num(num)"d, func);
+    assert(removeFunction("a(x) = num(num)"d));
 }

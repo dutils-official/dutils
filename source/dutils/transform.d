@@ -18,10 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /**Date: December 22, 2021*/
 /** License:  GPL-3.0*/
 module dutils.transform;
-version(DLL)
-{
-}
-else{
+
 public import dutils.skeleton;
 
 /**Move all the points in the skeleton instantenously by a specified amount on each axis.
@@ -166,5 +163,4 @@ public void fullScale(in real scale, ref shared Skeleton skele)
 		}
 		i.center = ((i.center - skele.center) * scale) + skele.center;
 	}
-}
 }

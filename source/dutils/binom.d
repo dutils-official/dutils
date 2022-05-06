@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** License:  GPL-3.0**/
 
 module dutils.binom;
-
+///THIS CODE NEEDS WORK.
 ///Class: Output of member functions of InBinom
 //TODO:ADD DLL
 public class OutBinom(X)  if(is(X : real))	{ //Class for the output of functions involving binomials
@@ -136,3 +136,4 @@ public class InBinom(X) if(is(X : real))	{	//Class for the binomials(input)
 			return ret;
 		}
 }
+

@@ -18,6 +18,10 @@ jobs:
         with:
           compiler: ${{ matrix.dc }}
 
+      - name: Build standard
+        run: dub -v build --arch=x86_64 --build-mode=allAtOnce --config=standard
+      - name: Build shared
+        run: dub -v build --arch=x86_64 --build-mode=allAtOnce --config=shared
       - name: Run static lib tests
         run: dub -v test
       - name: Run shared lib tests

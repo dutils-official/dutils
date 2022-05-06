@@ -18,6 +18,10 @@ module dutils;
 
 version(DLL)
 {
+    version(DigitalMars)
+    {
+        static assert(false, "For some reason, this fails to build with DMD.  Use LDC2 instead.");
+    }
 	mixin("export:");
 }
 
@@ -27,8 +31,7 @@ else
 }
 
 import dutils.binom;
-import dutils.physics;
-import dutils.skeleton;
-import dutils.transform;
 import dutils.sprite;
+import dutils.skeleton;
+import dutils.physics;
 import dutils.math;
