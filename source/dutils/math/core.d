@@ -285,7 +285,7 @@ bool removeFunction(dstring funcdef) @safe @nogc nothrow
 unittest
 {
     dstring func = "x + 1"d;
-    assert(!removeFunction("a(x) = num(num)"d));
+    assert(!removeFunction("c(x) = num(num)"d)); //Apparently data is saved between tests, so a(x) has to be replaced with c(x).
     funcList["δ(x) = num(num)"d] = null;
     assert(!removeFunction("δ(x) = num(num)"d));
     funcList.remove("δ(x) = num(num)");
