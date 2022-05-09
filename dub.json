@@ -24,7 +24,7 @@
 		"./source/dutils"
 	],
 	"license": "GLP-3.0",
-	"name": "dutils",
+	"name": "dutilsy",
 	"sourceFiles": [
 		"./source/dutils/package.d"
 	],
