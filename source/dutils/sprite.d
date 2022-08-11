@@ -15,6 +15,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
+///NOTICE:  THIS CODE OBVIOUSLY SUCKS.  IT WILL BE OUTRIGHT DELETED.
+
+
 /** Copyright: 2021, Ruby The Roobster*/
 /**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
 /**Date: October 1, 2021*/

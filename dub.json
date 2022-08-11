@@ -23,47 +23,36 @@
 	"importPaths": [
 		"./source/dutils"
 	],
-	"license": "GLP-3.0",
+	"license": "GPL-3.0",
 	"name": "dutils",
 	"sourceFiles": [
 		"./source/dutils/package.d"
 	],
-	"subPackages": [
-		{
-			"dependencies": {
-				"dutils:skeleton": ">=0.0.0"
-			},
-			"description": ".spr file format for images because I'm to lazy to use a preexisting one for sprites.",
-			"importPaths": [
-				"./source/dutils"
-			],
-			"name": "sprite",
-			"sourceFiles": [
-				"sprite.d"
-			],
-			"targetType": "library"
-		},
-		{
-			"description": "Module for doing some bionomial work in the D Programming Language(why did I make this).",
-			"importPaths": [
-				"./source/dutils"
-			],
-			"name": "binom",
-			"sourceFiles": [
-				"binom.d"
-			],
-			"targetType": "library"
-		},
-		{
-			"description": "General D math library.",
-			"importPaths": [
-				"./source/dutils/math"
-			],
-			"name": "math",
-			"sourceFiles": [
-				"package.d"
-			],
-			"targetType": "library"
-		}
-	]
+	"targetName": "dutils",
+	"targetPath": "lib",
+	"targetType": "staticLibrary",
+    "subPackages": [
+        {
+            "name": "math",
+            "configurations": [
+                {
+                    "name": "standard",
+                    "targetType": "library"
+                },
+                {
+                    "name": "shared",
+                    "targetType": "dynamicLibrary",
+                    "versions": [
+                        "DLL"
+                    ]
+                }
+            ],
+            "importPaths": [
+                "./source/dutils/math"
+            ],
+            "sourceFiles": [
+                "./source/dutils/math/package.d"
+            ]
+        }
+    ]        
 }
