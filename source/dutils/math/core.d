@@ -1,4 +1,23 @@
+/*This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
+/** Copyright: 2022, Ruby The Roobster*/
+/**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
+/**Date: August 2, 2021*/
+/** License:  GPL-3.0**/
+///Core part of the dutils math library.
 module dutils.math.core;
+
+public import dutils.math.def;
 
 version(DLL)
 {
@@ -10,286 +29,498 @@ else
 	mixin("public:");
 }
 
-import std.complex;
-
-alias Operator = dstring function(dstring input);
-
-//List of all operations.
-package shared Operator[dstring] opList;
-
-//List of all functions.
-package shared dstring[dstring] funcList;
-
-//Functions that may not be deleted.
-package shared dstring[dstring] noTouch;
-
-//Initialize the basic arithmetic operations to null: these will be handled by operator overloading.
-shared static this()
-{
-    opList["+"d] = null;
-	opList["-"d] = null;
-	opList["*"d] = null;
-	opList["/"d] = null;
-	opList["^^"d] = null;
-}
-
-//Add the neccessary functions to noTouch.
-shared static this()
-{
-    noTouch["ln(x) = num(num)"d] = null;
-    noTouch["sin(x) = num(num)"d] = null;
-    noTouch["cos(x) = num(num)"d] = null;
-    noTouch["tan(x) = num(num)"d] = null;
-    noTouch["csc(x) = num(num)"d] = null;
-    noTouch["sec(x) = num(num)"d] = null;
-    noTouch["cot(x) = num(num)"d] = null;
-    noTouch["Γ(x) = num(num)"d] = null;
-    noTouch["δ(x) = num(num)"d] = null;
-}
-//An interface that serves as the basis for all math types.
-package interface mType
-{
-	mType opBinary(string op)(mType rhs);
-	mType opBinary(string op)(Complex!real rhs);
-	
-	mType opBinaryRight(string op)(mType lhs);
-	mType opBinaryRight(string op)(Complex!real lhs);
-	
-	mType opUnary(string op);
-}
-
-/**************************************************
- * Validates the math library's fucntion syntax.
- *
- * TODO: Make syntax rules modular.
+/*********************************************************
+ * Registers a valid function that doesn't already exists.
  *
  * Params:
- *     funcbody = The body of the function to validate.
- * Returns: true if the function has correct syntax,
- *          false otherwise.
- */
-bool validateFunction(dstring funcbody) nothrow pure @safe @nogc
-{
-	import std.uni : isSpace, isNumber;
-	
-	long indentation = 0; //Indentation level;
-	bool isOp = false;  //If there is a current operator being used.
-	bool isNum = false;  //If there is currently a number in use.
-	bool isDec = false; //If there is already a decimal point in the number.
-    bool isx = false;  //If the current number is 'x'.
-    bool isEverNum = false;  //If there is at least one number in the function body.
-	ubyte powCount = 0; //Internal counter for ^^ operator.
-	
-	foreach(c; funcbody)
-	{
-	    Switch: switch(c)
-		{
-			case cast(dchar)'x':
-                isx = true;
-				isOp = false;
-                isNum = true;
-                isEverNum = true;
-                isDec = false;
-			    break;
-				
-			static foreach(x; [cast(dchar)'+', cast(dchar)'-', cast(dchar)'*', cast(dchar)'/']) //Iterate over validating the basic four operators.
-			{
-				case x:
-					if(isOp || !isNum)
-						return false;
-						
-					isOp = true;
-					powCount = 0;
-                    isNum = false;
-                    isDec = false;
-                    isx = false;
-					break Switch;
-			}
-			
-			case cast(dchar)'^': //Take care of exponents.
-				if(isOp || !isNum)
-					return false;
-					
-				switch(powCount)
-				{
-					case 0:
-						++powCount;
-						break;
-					case 1:
-						++powCount;
-						isOp = true;
-						break;
-					default:
-						return false;
-				}
-                isNum = false;
-                isDec = false;
-                isx = false;
-				break;
-            case cast(dchar)'(': //Indentation
-                ++indentation;
-                break;
-            case cast(dchar)')':
-                --indentation;
-                break;
-			default:
-			     if(isNumber(c) || c == cast(dchar)'i') //Imaginary numbers are numbers.
-                 {
-                    isNum = true;
-                    isx = false;
-                    isEverNum = true;
-                    isOp = false;
-                    break;
-                 }
-                 else if(c == cast(dchar)'.')  //Dissallow multiple decimal points.
-                 {
-                    if(!isDec && isNum && !isx)
-                        isDec = true;
-                    else
-                        return false;
-                    break;
-                 }
-                 else if(isSpace(c))
-                    break;
-                 else
-                    return false;
-        }
-    }
-    if(indentation != 0 || !isEverNum || powCount != 0 || isOp)  //Final conditions that have to be met.
-        return false;
-    return true;
-}
-
-///
-unittest
-{
-    dstring func = "x + 1"d;
-    assert(validateFunction(func));
-    func = "x^^2 + 2^^2 j- 3"d;
-    assert(!validateFunction(func));
-    func = "x.3";
-    assert(!validateFunction(func));
-    func = "()";
-    assert(!validateFunction(func));
-    func = "x ^ 3";
-    assert(!validateFunction(func));
-    func = "x +";
-    assert(!validateFunction(func));
-    assert(!validateFunction("x ++ 1"d));
-}
-
-/*******************************************************************
- * Registers a function with the given name and function body.
- * A function cannot register if its body has invalid syntax or if
- * its definition has already been used.
- * 
- * Params:
- *     funcdef = The definition of the function to register.
- *     funcbody = The body of the function to register.
+ *    func =
+ *        The function name and parameters.
+ *    def =
+ *        The definition of the function.
  *
  * Returns:
- *     True if the function successfuly registers, false
- *     otherwise.
+ *     Whether the function was registered.
  */
-bool registerFunction(dstring funcdef, dstring funcbody) @safe nothrow
+ 
+bool registerFunction(immutable dstring func, immutable dstring def)
 {
-    import std.string : strip;
-    
-    uint index = 0;
-    bool openParam = false;
+    auto ret = validateFunction(func, def) && func !in funcList.funcs;
+    if(ret)
+        funcList.funcs[func] = def;
+    return ret;
+}
 
-    funcdef = cast(dstring)(cast(string)funcdef.strip); //Strip all whitespace, so to allow the user more freedom.
-    
-    Loop:
-    for (uint i = 0; i < funcdef.length; i++) //Make sure the function is defined along the lines of a(x) = num(num).
+/********************************************************
+ * Validates a function.
+ *
+ * Params:
+ *     func =
+ *        The function name and parameters.
+ *     def =
+ *          The definition of the function.
+ * Returns:
+ *     Whether the function is valid or not.
+ */
+ 
+bool validateFunction(dstring func, dstring def) @trusted
+{
+    dstring[] params;
+    dstring[] returni;
+    import std.string : strip;
+    func = func.strip;
+    def = def.strip;
+    size_t i = 0;
+    getParamsReturns(returni, func, i); //Get the function return type.
+    dstring returns;
+    try
     {
-        switch(funcdef[i])
+        returns = returni[0];
+    }
+    catch(Exception e)
+    {
+        return false;
+    }
+    ++i; //Make sure to get out of the closing parenthesis.
+    getParamsReturns(params, func, i); //Get the parameter types.
+    static foreach(type; typel.keys)
+    {
+        mixin(typel[type] ~ "[] " ~ type ~ "ParamList;");
+        mixin(typel[type] ~ "[] " ~ type ~ "OperandList;");
+    }
+    //Make sure that we know the types of of each parameter.
+    dstring[] paramTypeList = [];
+    dstring returnType = null;
+    for(size_t j = 0; j < params.length; j++)
+    {
+        switch(params[j])
         {
-            case cast(dchar)'=':
-                 if(openParam)
-                    return false;
-                 index = i;
-                 break Loop;
-            case cast(dchar)'(':
-                if(openParam)
-                    return false;
-                index = i;
-                openParam = true;
-                break;
-            case cast(dchar)')':
-                if(!openParam)
-                    return false;
-                openParam = false;
-                break;
+            static foreach(type; typel.keys)
+            {
+                case typel[type]:
+                    mixin("++" ~ type ~ "ParamList.length;");
+                    ++paramTypeList.length;
+                    paramTypeList[j] = type;
+                    break;
+            }
             default:
-                if(index == i-1 && openParam)
+                return false;
+        }
+    }
+    //Get the return type.
+    for(size_t j = 0; j < 1; j++)
+    {
+        switch(returns)
+        {
+            static foreach(type; typel.keys)
+            {
+                case typel[type]:
+                    returnType = type;
+                    break;
+            }
+            default:
+                return false;
+        }
+    }   
+    //This gets scary.
+    //Buckle up.
+    bool isOperand = false;
+    bool isOp = false;
+    dstring currOperand;
+    dstring currOp;
+    import std.uni : isNumber;
+    for(i = 0; i < def.length; i++)
+    {
+        switch(def[i])
+        {
+            case d('x'): //Uh-oh
+                if(isOperand && !isOp)
+                    return false;
+                dstring prevOp = currOperand.idup;
+                isOperand = true;
+                ++i;
+                if(!def[i].isNumber) //Forced indexing of parameters.
+                    return false;
+                dstring tempNum; 
+                do
                 {
-                    if(funcdef[i] != cast(dchar)'x')
+                    tempNum ~= def[i];
+                    ++i;
+                }
+                while(def[i].isNumber);
+                import std.conv : to;
+                dstring tempType;
+                tempType = paramTypeList[to!size_t(tempNum)];
+                final switch(tempType)
+                {
+                    static foreach(type; typel.keys)
+                    {
+                        case type:
+                            mixin(type ~ "OperandList ~= new " ~ typel[type] ~ "();");
+                            currOperand = typel[type];
+                            break;
+                    }
+                }
+                //Op verification.
+                if(isOp) //Speed on this gonna be O(n^2), where n is typel.keys.length, both compilation and runtime.
+                {
+                    final switch(currOperand)
+                    {
+                        static foreach(type; typel.keys)
+                        {
+                            case typel[type]:
+                                final switch(prevOp)
+                                {
+                                    static foreach(type2; typel.keys)
+                                    {
+                                        case typel[type2]:
+                                            mixin("bool b = opCheckCrap(" ~ type2 ~ "OperandList[0], " ~ type ~ "OperandList[0], currOp);");
+                                            if(!b)
+                                                return false;
+                                            break;
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                }
+                break;
+            case d('\\'): //May possibly be even worse than above, as it denotes a special operator.
+                if(isOperand && !isOp)
+                    return false;
+                isOperand = true;
+                dstring opName;
+                dstring prevOp = currOperand.idup;
+                ++i;
+                do
+                {
+                    opName ~= def[i];
+                    ++i;
+                }
+                while(def[i] != d('('));
+                //Get the  type of the operand as it is needed for later.
+                dstring tempTypeCrap = ""d;
+                do
+                {
+                    tempTypeCrap ~= def[i];
+                    ++i;
+                }
+                while(def[i] != d(')'));
+                ++i;
+                currOperand = tempTypeCrap;
+                if(def[i] != d('('))
+                    return false;
+                dstring[] tempOps = [];
+                do
+                {
+                    ++tempOps.length;
+                    do
+                    {
+                        tempOps[$-1] ~= def[i];
+                        ++i;
+                    }
+                    while(def[i] != d(',') && def[i] != d(')')); //Just in case.
+                    bool a = (def[i] == d(')'));
+                    ++i;
+                    if(a && ((def[i] == d(',')) ^ (def[i] == d(')'))))
+                        tempOps[$-1] ~= d(')'); //Fix bug about functions not working.
+                }
+                while(def[i] != d(')'));
+                ++i;
+                if(def[i] != '\\')
+                    return false;
+                //Get the types of the parameters referenced by the special operator call.
+                dstring[] tempTypes = [];
+                foreach(tempOp; tempOps)
+                {
+                    size_t k = 1;
+                    dstring tempNum = ""d;
+                    
+                    if(tempOp[0] == d('x'))
+                    {
+                        tempNum ~= d('x');
+                        do
+                        {
+                            tempNum ~= tempOp[k];
+                            ++k;
+                        }
+                        while(tempOp[k] != d('(') && k != tempOp.length - 1);
+                        if(k == tempOp.length -1)
+                            k = 1;
+                        else
+                            goto Func;
+                    }
+                    tempNum = "";
+                    do
+                    {
+                        tempNum ~= tempOp[k];
+                        if(!tempOp[k].isNumber)
+                            return false;
+                        k++;
+                    }
+                    while(k != tempOp.length);
+                    ++tempTypes.length;
+                    import std.conv : to;
+                    tempTypes[$-1] = paramTypeList[to!size_t(tempNum)];
+                    
+                    Func:
+                    k = 1;
+                    //Function type header.
+                    ++tempTypes.length;
+                    tempTypes[$-1] = "f(x)"d;
+                    //Get the function's return type (very easy, considering how it is specified).
+                    do
+                    {
+                        tempNum ~= tempOp[k];
+                        ++k;
+                    }
+                    while(tempOp[k] != d(')'));
+                    ++k;
+                    tempTypes[$-1] ~= tempNum;
+                    tempTypes[$-1] ~= ")("d;
+                    tempNum = ""d;
+
+                    //Get the types of the function's parameters.
+                    dstring[] tempTypes2 = [];
+                    do
+                    {
+                        ++k;
+                        ++tempTypes2.length;
+                        do
+                        {
+                            tempTypes2[$-1] ~= tempOp[k];
+                            ++k;
+                        }
+                        while(tempOp[k] != d(',') && tempOp[k] != d(')'));
+                    }
+                    while(tempOp[k] != d(')'));
+
+                    foreach(type; tempTypes2)
+                    {
+                        size_t l = 1;
+                        if(type[0] != d('x'))
+                            return false;
+                        do
+                        {
+                            tempNum ~= type[l];
+                            if(!type[l].isNumber)
+                                return false;
+                            ++l;
+                        }
+                        while(l < type.length);
+
+                        tempTypes[$-1] ~= paramTypeList[to!size_t(tempNum)];
+                        tempTypes[$-1] ~= d(',');
+                    }
+
+                    --tempTypes[$-1].length;
+                    tempTypes[$-1] ~= d(')');
+                    if(tempTypes[$-1][4 .. $-1] !in funcList)
                         return false;
                 }
+                //Verify that the types match.
+                opName ~= "("d;
+                foreach(type; tempTypes)
+                {
+                    opName ~= type;
+                    opName ~= ","d;
+                }
+                --opName.length;
+                opName ~= ")"d;
+                if(opName !in opList)
+                    return false;
+                currOperand = opName;
+                //Op verification.
+                if(isOp) //Speed on this gonna be O(n^2), where n is typel.keys.length, both compilation and runtime.
+                {
+                    final switch(currOperand)
+                    {
+                        static foreach(type; typel.keys)
+                        {
+                            case typel[type]:
+                                final switch(prevOp)
+                                {
+                                    static foreach(type2; typel.keys)
+                                    {
+                                        case typel[type2]:
+                                            mixin("bool b = opCheckCrap(" ~ type2 ~ "OperandList[0], " ~ type ~ "OperandList[0], currOp);");
+                                            if(!b)
+                                                return false;
+                                            break;
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                }
+                break;
+            default:
+                auto oldi = i;
+                dchar[] tempstr = [];
+                do
+                {
+                    tempstr ~= def[i];
+                    ++i;
+                }
+                while(def[i] != d('(') && i != def.length - 2 );
+                if(i != def.length - 2) //Functions inside of functions.
+                {
+                    dstring prevOp = currOperand.idup;
+                    if(isOperand || !isOp)
+                        return false;                   
+                    //Get the function return type, and set currOperand to it.
+                    dchar[] tempstr2 = [];
+                    ++i;
+                    do
+                    {
+                        tempstr2 ~= def[i];
+                        tempstr ~= def[i];
+                        ++i;
+                    }
+                    while(def[i] != d(')'));
+                    tempstr ~= def[i];
+                    ++i;
+                    final switch(tempstr2)
+                    {
+                        static foreach(type; typel.keys)
+                        {
+                            case type:
+                                currOperand = typel[type];
+                                mixin(type ~ "OperandList ~= new " ~ typel[type] ~ "();");
+                                break;
+                        }
+                    }
+                    //Get the function parameters.
+                    dstring[] tempOps = [];
+                    do
+                    {
+                        ++tempOps.length;
+                        do
+                        {
+                            tempOps[$-1] ~= def[i];
+                            ++i;
+                        }
+                        while(def[i] != d(','));
+                        ++i;
+                    }
+                    while(def[i-1] != d(')'));
+                    //Get the types of the function parameters (pain).
+                    dstring[] tempTypes = [];
+                    foreach(tempOp; tempOps)
+                    {
+                        dstring tempNum;
+                        size_t j = 1;
+                        if(tempOp[0] != d('x'))
+                            return false;
+                        do
+                        {
+                            tempNum ~= tempOp[j];
+                            if(!tempOp[j].isNumber)
+                                return false;
+                            j++;
+                        }
+                        while(j != tempOp.length);
+                        ++tempTypes.length;
+                        import std.conv : to;
+                        tempTypes[$-1] = paramTypeList[to!size_t(tempNum)];
+                    }
+                    tempstr ~= d('(');
+                    foreach(tempOp; tempOps)
+                    {
+                        tempstr2 ~= tempOp;
+                    }
+                    tempstr2[$-1] = d(')');
+                    foreach(type; tempTypes)
+                    {
+                        tempstr ~= type;
+                        tempstr ~= d(',');
+                    }
+                    tempstr[$-1] = d(')');
+                    //Verify that the function used here is valid:
+                    if(tempstr !in funcList)
+                        return false;
+                    //Op verification.
+                    if(isOp) //Speed on this gonna be O(n^2), where n is typel.keys.length, both compilation and runtime.
+                    {
+                        final switch(currOperand)
+                        {
+                            static foreach(type; typel.keys)
+                            {
+                                case typel[type]:
+                                    final switch(prevOp)
+                                    {
+                                        static foreach(type2; typel.keys)
+                                        {
+                                            case typel[type2]:
+                                                mixin("bool b = opCheckCrap(" ~ type2 ~ "OperandList[0], " ~ type ~ "OperandList[0], currOp);");
+                                                if(!b)
+                                                    return false;
+                                                break;
+                                        }
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                }
+                else if(i == def.length - 2)
+                    return false;
+                else //Otherwise, an operator specific to a math type.
+                {
+                    i = oldi;
+                    if(isOp)
+                        return false;
+                    isOp = true;
+                    isOperand = false;
+                    tempstr = [];
+                    do
+                    {
+                        tempstr ~= def[i];
+                        ++i;
+                    }
+                    while(def[i] != d('x') && def[i] != d('\\'));
+                    --i;
+                    currOp = tempstr.idup;
+                }
+                return false;
         }
     }
-    
-    if(funcdef[index .. $] != "= num(num)"d)
-        return false;            
-                
-    if(validateFunction(funcbody) && funcdef !in funcList) //Validate the function and make sure that it isn't already defined.
-    {
-        funcList[funcdef] = funcbody;
-        return true;
-    }
-    return false;
-}
-
-///
-unittest
-{
-    dstring func = "x + 1"d;
-    assert(registerFunction("a(x) = num(num)"d,func));
-    func = "x^^2 + 2^^2 j- 3"d;
-    assert(!registerFunction("a(x) = num(num)"d,func));
-    func = "x.3";
-    assert(!registerFunction("a(x) = num(num)"d,func));
-    func = "()";
-    assert(!registerFunction("a(x) = num(num)"d,func));
-    func = "x ^ 3";
-    assert(!registerFunction("a(x) = num(num)"d,func));
-    func = "x +";
-    assert(!registerFunction("a(x) = num(num)"d,func));
-    assert(!registerFunction("a(x) = num(num)"d,"x ++ 1"d));
-    assert(registerFunction("b(x) = num(num)"d, "x"d));
-    registerFunction("a(x) = num(num)"d,func); //Fails on MacOS without this.
-    assert(!registerFunction("a(x) = num(num)"d, "x"d));
-}
-
-/*******************************************************
- * Removes a registered function given its definition.
- *
- * The function being removed must be registered and must
- * not be an untouchable function.
- *
- * Params:
- *     funcdef = The definition of the function to remove.
- * Returns:
- *     True if the function is succesfully removed, false
- *     otherwise.
- */
-bool removeFunction(dstring funcdef) @safe @nogc nothrow
-{
-    if(funcdef !in funcList || funcdef in noTouch) //Make sure that the function acutally exists and isn't non-removable.
+    if(isOp || !isOperand) //If there are no other syntax errors, ensure the following.
         return false;
-    funcList.remove(funcdef);
     return true;
 }
 
-///
-unittest
+package dchar d(char c) pure @safe
 {
-    dstring func = "x + 1"d;
-    assert(!removeFunction("c(x) = num(num)"d)); //Apparently data is saved between tests, so a(x) has to be replaced with c(x).
-    funcList["δ(x) = num(num)"d] = null;
-    assert(!removeFunction("δ(x) = num(num)"d));
-    funcList.remove("δ(x) = num(num)");
-    registerFunction("a(x) = num(num)"d, func);
-    assert(removeFunction("a(x) = num(num)"d));
+    return cast(dchar)c;
+}
+
+package void getParamsReturns(ref dstring[] input, immutable dstring func, ref size_t i) pure @safe //Get the types of the function parameters and the return types.
+{
+    for(; func[i] != cast(dchar)')'; i++)
+    {
+        if(func[i] == cast(dchar)'(')
+        {
+            input.length = 1;
+            ++i;
+            for(; func[i] != cast(dchar)','; i++)
+            {
+                input[$-1] ~= func[i];
+            }
+        }
+        if(func[i] == cast(dchar)',')
+        {
+            ++input.length;
+            ++i;
+            for(; func[i] != cast(dchar)','; i++)
+            {
+                input[$-1] ~= func[i];
+            }
+        }
+    }
+}
+
+//Function that checks whether using op currOp with type as its lhs and type2 as its rhs is valid.
+package bool opCheckCrap(W, X)(Mtype!W type, Mtype!X type2, dstring currOp) //Please god let W and X be inferred from the arguments please.
+{
+    return type.applyOp(currOp, type2);
 }
