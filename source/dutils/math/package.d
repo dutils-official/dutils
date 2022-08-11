@@ -19,9 +19,12 @@ module dutils.math;
 
 version(DLL)
 {
-	export import dutils.math.core;
+	export:
 }
 else
 {
-	public import dutils.math.core;
+	public:
 }
+
+import dutils.math.core;
+import dutils.math.number;

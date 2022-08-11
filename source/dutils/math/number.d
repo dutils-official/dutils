@@ -33,19 +33,19 @@ public import std.bigint;
 
 class Number : Mtype!NumberContainer
 {
-    this(NumberContainer num)
+    this(NumberContainer num = NumberContainer(BigInt(0),BigInt(0),0))
     {
         this.contained = val;
     }
 
     override dstring toDstring() const @property pure @safe
     {
-        return this.contained.toDstring;
+        return ""d; //Placeholder;
     }
 
     override void fromDstring(dstring from) pure @safe
     {
-        this.contained.fromDstring(from);
+        //Placeholder
     }
 
     bool applyOp(W)(dstring op, Mtype!W rhs) pure @safe
@@ -56,10 +56,20 @@ class Number : Mtype!NumberContainer
     }
     do
     {
-        mixin("this.contained " ~ op ~ "= rhs.contained;");
+        Switch: final switch(op)
+        {
+            static foreach(o; ["+"d, "-"d, "*"d, "/"d, "^^"d])
+            {
+                case o:
+                    mixin("this.contained.opOpAssign!\""d ~ o ~ "\"(rhs.contained);"d);
+                    break Switch;
+            }
+        }
         return true; //We assume that the contract hasn't been violated.
     }
+
 }
+
 struct NumberContainer
 {
     this(BigInt val, BigInt ival = 0, long pow10 = 0, ulong precision = 18) pure @safe nothrow @nogc
@@ -68,16 +78,6 @@ struct NumberContainer
         this.pow10 = pow10;
         this.ival = ival;
         this.precision = precision;
-    }
-    
-    dstring toDstring() const @property pure @safe
-    {
-        return ""d; //Placeholder
-    }
-
-    void fromDstring(dstring from) pure @safe
-    {
-        //Placeholder
     }
 
     void opOpAssign(string op)(NumberContainer rhs) pure @safe
@@ -95,7 +95,7 @@ struct NumberContainer
             bool sign = (rhs.ival < 0); //Fix the infinite loop that occurs for negative values of rhs.ival.
             if(sign)
                 rhs.ival *= -1;
-            for(ulong i = 0; i < precision; ++i) //Real part
+            for(ulong i = 0; i < this.precision; ++i) //Real part
             {
                 if(rhs.val == BigInt(0))
                     break;
@@ -214,6 +214,6 @@ struct NumberContainer
     a = 2;
     NumberContainer f = NumberContainer(a,b,c);
     e /= f;
-    assert(((e).val == 6 && (e).pow10 == -1) && e.ival == -2);
+    assert((e.val == 6 && e.pow10 == -1) && e.ival == -2);
     
 }

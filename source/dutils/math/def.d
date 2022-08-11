@@ -95,4 +95,6 @@ struct Funclist
 ///The list of all functions.
 package shared Funclist funcList;
 
-enum string[dstring] typel = null; //Too bad that complete modular programming is impossible in D.
+package import dutils.math.number;
+
+enum dstring[dstring] typel = ["Number"d : "Number"d]; //Too bad that complete modular programming is impossible in D.

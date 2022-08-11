@@ -92,7 +92,7 @@ bool validateFunction(dstring func, dstring def) @trusted
     dstring returnType = null;
     for(size_t j = 0; j < params.length; j++)
     {
-        switch(params[j])
+        Switch: switch(params[j])
         {
             static foreach(type; typel.keys)
             {
@@ -100,7 +100,7 @@ bool validateFunction(dstring func, dstring def) @trusted
                     mixin("++" ~ type ~ "ParamList.length;");
                     ++paramTypeList.length;
                     paramTypeList[j] = type;
-                    break;
+                    break Switch;
             }
             default:
                 return false;
@@ -109,13 +109,13 @@ bool validateFunction(dstring func, dstring def) @trusted
     //Get the return type.
     for(size_t j = 0; j < 1; j++)
     {
-        switch(returns)
+        Switch2: switch(returns)
         {
             static foreach(type; typel.keys)
             {
                 case typel[type]:
                     returnType = type;
-                    break;
+                    break Switch2;
             }
             default:
                 return false;
@@ -150,25 +150,25 @@ bool validateFunction(dstring func, dstring def) @trusted
                 import std.conv : to;
                 dstring tempType;
                 tempType = paramTypeList[to!size_t(tempNum)];
-                final switch(tempType)
+                Switch3: final switch(tempType)
                 {
                     static foreach(type; typel.keys)
                     {
                         case type:
-                            mixin(type ~ "OperandList ~= new " ~ typel[type] ~ "();");
+                            mixin(type ~ "OperandList ~= new "d ~ typel[type] ~ "();"d);
                             currOperand = typel[type];
-                            break;
+                            break Switch3;
                     }
                 }
                 //Op verification.
                 if(isOp) //Speed on this gonna be O(n^2), where n is typel.keys.length, both compilation and runtime.
                 {
-                    final switch(currOperand)
+                    Switch4: final switch(currOperand)
                     {
                         static foreach(type; typel.keys)
                         {
                             case typel[type]:
-                                final switch(prevOp)
+                                Switch5: final switch(prevOp)
                                 {
                                     static foreach(type2; typel.keys)
                                     {
@@ -176,10 +176,10 @@ bool validateFunction(dstring func, dstring def) @trusted
                                             mixin("bool b = opCheckCrap(" ~ type2 ~ "OperandList[0], " ~ type ~ "OperandList[0], currOp);");
                                             if(!b)
                                                 return false;
-                                            break;
+                                            break Switch5;
                                     }
                                 }
-                                break;
+                                break Switch4;
                         }
                     }
                 }
@@ -222,7 +222,7 @@ bool validateFunction(dstring func, dstring def) @trusted
                     bool a = (def[i] == d(')'));
                     ++i;
                     if(a && ((def[i] == d(',')) ^ (def[i] == d(')'))))
-                        tempOps[$-1] ~= d(')'); //Fix bug about functions not working.
+                        tempOps[$-1] ~= d(')'); //Fix bug about functions not working (I think I did, but I might be wrong).
                 }
                 while(def[i] != d(')'));
                 ++i;
@@ -332,12 +332,12 @@ bool validateFunction(dstring func, dstring def) @trusted
                 //Op verification.
                 if(isOp) //Speed on this gonna be O(n^2), where n is typel.keys.length, both compilation and runtime.
                 {
-                    final switch(currOperand)
+                    Switch6: final switch(currOperand)
                     {
                         static foreach(type; typel.keys)
                         {
                             case typel[type]:
-                                final switch(prevOp)
+                                Switch7: final switch(prevOp)
                                 {
                                     static foreach(type2; typel.keys)
                                     {
@@ -345,10 +345,10 @@ bool validateFunction(dstring func, dstring def) @trusted
                                             mixin("bool b = opCheckCrap(" ~ type2 ~ "OperandList[0], " ~ type ~ "OperandList[0], currOp);");
                                             if(!b)
                                                 return false;
-                                            break;
+                                            break Switch7;
                                     }
                                 }
-                                break;
+                                break Switch6;
                         }
                     }
                 }
@@ -379,14 +379,14 @@ bool validateFunction(dstring func, dstring def) @trusted
                     while(def[i] != d(')'));
                     tempstr ~= def[i];
                     ++i;
-                    final switch(tempstr2)
+                    Switch10: final switch(tempstr2)
                     {
                         static foreach(type; typel.keys)
                         {
                             case type:
                                 currOperand = typel[type];
                                 mixin(type ~ "OperandList ~= new " ~ typel[type] ~ "();");
-                                break;
+                                break Switch10;
                         }
                     }
                     //Get the function parameters.
@@ -441,12 +441,12 @@ bool validateFunction(dstring func, dstring def) @trusted
                     //Op verification.
                     if(isOp) //Speed on this gonna be O(n^2), where n is typel.keys.length, both compilation and runtime.
                     {
-                        final switch(currOperand)
+                        Switch8: final switch(currOperand)
                         {
                             static foreach(type; typel.keys)
                             {
                                 case typel[type]:
-                                    final switch(prevOp)
+                                    Switch9: final switch(prevOp)
                                     {
                                         static foreach(type2; typel.keys)
                                         {
@@ -454,10 +454,10 @@ bool validateFunction(dstring func, dstring def) @trusted
                                                 mixin("bool b = opCheckCrap(" ~ type2 ~ "OperandList[0], " ~ type ~ "OperandList[0], currOp);");
                                                 if(!b)
                                                     return false;
-                                                break;
+                                                break Switch9;
                                         }
                                     }
-                                    break;
+                                    break Switch8;
                             }
                         }
                     }
@@ -520,7 +520,11 @@ package void getParamsReturns(ref dstring[] input, immutable dstring func, ref s
 }
 
 //Function that checks whether using op currOp with type as its lhs and type2 as its rhs is valid.
-package bool opCheckCrap(W, X)(Mtype!W type, Mtype!X type2, dstring currOp) //Please god let W and X be inferred from the arguments please.
+package bool opCheckCrap(W, X)(W type, X type2, dstring currOp)//Please god let W and X be inferred from the arguments please.
 {
     return type.applyOp(currOp, type2);
 }
+
+public import std.typecons;
+
+
