@@ -70,6 +70,10 @@ struct Oplist
     {
         mixin("return key " ~ op ~ " ops;");
     }
+    auto keys()
+    {
+        return this.ops.keys;
+    }
     package:
         Operator[dstring] ops;
 }
@@ -87,6 +91,10 @@ struct Funclist
     auto opBinaryRight(string op)(inout(dchar)[] key) pure const @trusted shared if(op == "in" || op == "!in")
     {
         mixin("return cast(dstring)key " ~ op ~ " funcs;");
+    }
+    auto keys()
+    {
+        return this.funcs.keys;
     }
     package:
         dstring[dstring] funcs;

@@ -206,6 +206,7 @@ struct NumberContainer
         ulong precision;
 }
 
+///
 @safe unittest {
     BigInt a = 1;
     BigInt b = -1;
@@ -215,5 +216,4 @@ struct NumberContainer
     NumberContainer f = NumberContainer(a,b,c);
     e /= f;
     assert((e.val == 6 && e.pow10 == -1) && e.ival == -2);
-    
 }

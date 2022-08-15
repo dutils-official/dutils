@@ -1,6 +1,18 @@
 # dutils:math
 The dutils math library.
 
+## Syntax
+
+### Function Syntax
+
+- All functions are of the form (Params)(Return), where Params is a comma separated list of the function input types, while Return is the type that the function outputs.
+
+- The only valid type as of this writing is Number, with the operators +,-,/,*,and ^^ (which is unimplemented).
+
+- No whitespace (I'm too lazy to make this possible kek).
+
+- To reference the first parameter, you would use x1, the second, x2, and so on and so forth.
+
 ## Changelog for dutils v0.2.0
 
 ### NEW
