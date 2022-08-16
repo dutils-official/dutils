@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: August 2, 2021*/
+/**Date: August 16, 2021*/
 /** License:  GPL-3.0**/
 ///Core part of the dutils math library.
 module dutils.math.core;
@@ -29,28 +29,52 @@ else
 	mixin("public:");
 }
 
-/*********************************************************
- * Registers a valid function that doesn't already exists.
+/********************************************************
+ * Registers a valid function that doesn't already exist.
  *
  * Params:
- *    func =
- *        The function name and parameters.
- *    def =
- *        The definition of the function.
+ *     name =
+ *         The function name.
+ *     func =
+ *         The function parameters and return type.
+ *     def =
+ *         The definition of the function.
  *
  * Returns:
  *     Whether the function was registered.
  */
  
-bool registerFunction(in dstring func, in dstring def) @safe
+bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
 {
-    auto ret = validateFunction(func, def) && func !in funcList.funcs;
+    auto ret = validateFunction(func, def) && name ~ func !in funcList.funcs;
     if(ret)
-        funcList.funcs[func] = def;
+        funcList.funcs[name ~ func] = def;
     return ret;
 }
 
-/********************************************************
+/**************************************************
+ * Removes a function provided that it exists.
+ *
+ * Params:
+ *     name =
+ *         The function name.
+ *     func =
+ *         The function parameters and return type.
+ *
+ * Returns:
+ *     Whether the function exists or not.
+ */
+bool removeFunction(in dstring name, in dstring func) @safe
+{
+    if(name ~ func in funcList.funcs)
+    {
+        funcList.funcs.remove(name ~ func);
+        return true;
+    }
+    return false;
+}
+
+/*******************************************
  * Validates a function.
  *
  * Params:
@@ -119,7 +143,7 @@ bool validateFunction(in dstring func, in dstring def) @trusted
         dstring tempNum;
         import std.uni : isNumber;
         i = 0;
-        size_t indentation = 0;
+        long indentation = 0;
         do
         {
             tempNum = ""d;
@@ -127,9 +151,11 @@ bool validateFunction(in dstring func, in dstring def) @trusted
             {
                 case d('('):
                     ++indentation;
+                    ++i;
                     break;
                 case d(')'):
                     --indentation;
+                    ++i;
                     break;
                 case d('x'):
                     if(isOperand && !isOp)
@@ -143,7 +169,12 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                     {
                         tempNum ~= def[i];
                         if(i == def.length-1)
-                            break;
+                        {
+                            if(def[i].isNumber)
+                                break;
+                            else
+                                --i;
+                        }
                         ++i;
                     }
                     while(def[i].isNumber);
@@ -184,10 +215,17 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                         }
                     }
                     isOp = false;
-                    if(i != def.length-1)
-                        --i;
+                    if(i == def.length-1)
+                    {
+                        if(!def[i].isNumber && def[i] != d(')'))
+                        {
+                            return false;
+                        }
+                        else if(def[i].isNumber)
+                            ++i;
+                    }
                     break;
-                case d('\\'): //May possibly be even worse than above, as it denotes a special operator.
+                case d('\\'): //May possibly be even worse than above, as it denotes a special operator. Also ridden with bugs, but I ain't fixin' that until this code is actually used.
                     if(isOperand && !isOp)
                         return false;
                     isOperand = true;
@@ -356,7 +394,6 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                         ++i;
                     }
                     isOp = false;
-                    --i;
                     break;
                 default:
                     auto oldi = i;
@@ -471,6 +508,7 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                             }
                         }
                         isOp = false;
+                        ++i;
                     }
                     else
                     {
@@ -488,12 +526,10 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                         }
                         while(def[i] != d('x') && def[i] != d('\\'));
                         currOp = tempstr.idup;
-                        --i;
                     }
             }
-            ++i;
         }
-        while(i < def.length-1);
+        while(i < def.length);
         if((isOp || !isOperand) || indentation != 0) //If there are no other syntax errors, ensure the following.
         {
             debug
@@ -516,9 +552,29 @@ bool validateFunction(in dstring func, in dstring def) @trusted
 ///
 @safe unittest
 {
+    /********************************************
+    * List of stuff that is invalid but crashes:
+    *
+    *     Whitespace
+    *     Preceding Operators
+    *     Invalid Operators and Characters
+    */ 
     dstring func = "(Number,Number)(Number)"d;
     dstring def = "x1*x2"d;
     assert(validateFunction(func, def));
+    func = "(Number,Number,Number)(Number)"d;
+    def = "x1*x2+x3"d;
+    assert(validateFunction(func, def));
+    def = "(x1"d;
+    assert(!validateFunction(func, def));
+    def = "(x1)"d;
+    assert(validateFunction(func, def)); //BUG: Traling characters are ignored.
+    def = "x1)"d;
+    assert(!validateFunction(func, def));
+    def = "x1x2"d;
+    assert(!validateFunction(func, def));
+    def = "x1+"d;
+    assert(!validateFunction(func, def));
 }
 
 package dchar d(char c) pure @safe
@@ -557,5 +613,3 @@ package bool opCheckCrap(W, X)(W type, X type2, dstring currOp)//Please god let 
 }
 
 public import std.typecons;
-
-
