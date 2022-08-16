@@ -21,9 +21,9 @@ version(DLL)
 {
     version(DigitalMars)
     {
-        static assert(false, "For some reason, this fails to build with DMD.  Use LDC2 instead.");
+        static assert(false, "For some reason, this fails to build with DMD.  Use LDC2 or GDC instead.");
     }
-	mixin("export:");
+    mixin("export:");
 }
 
 else

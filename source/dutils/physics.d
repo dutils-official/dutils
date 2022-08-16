@@ -14,7 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2021, Ruby The Roobster*/
-/**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
+/**Author: Ruby The Roobster, rubytheroobster@yandex.com*/
 /**Date: November 8, 2021*/
 /** License: GPL-3.0*/
 

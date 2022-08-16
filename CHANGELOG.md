@@ -11,11 +11,13 @@
 -  dutils.math.number contains the definition of the Number type, which is currently incomplete and undocumented.
    The Number type currently supports four operations: +, -, *, and /.
 
--  dutils.math.core currently only supports registering and validating a function.
+-  dutils.math.core currently only supports registering, validating, and unregistering a function.
 
 ## REMOVED
 
-- The entire library is getting a revamp, so I removed everything else.
+### dutils.math
+
+-  Anything that existed before in this subpackage has been deleted.
 
 # Changelog for dutils v0.1.4
 ### dutils.math

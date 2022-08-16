@@ -14,7 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2021, Ruby The Roobster*/
-/**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
+/**Author: Ruby The Roobster, rubytheroobster@yandex.com*/
 /**Date: October 1, 2021*/
 /** License:  GPL-3.0**/
 
@@ -22,6 +22,7 @@ module dutils.binom;
 ///THIS CODE NEEDS WORK.
 ///Class: Output of member functions of InBinom
 //TODO:ADD DLL
+//TODO: FIX AND MAKE IT WORK WITH THE MATH LIB
 public class OutBinom(X)  if(is(X : real))	{ //Class for the output of functions involving binomials
 	private:
 	uint[] coefficiants;

@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 
 /** Copyright: 2021, Ruby The Roobster*/
-/**Author: Ruby The Roobster, michaeleverestc79@gmail.com*/
+/**Author: Ruby The Roobster, rubytheroobster@yandex.com*/
 /**Date: October 1, 2021*/
 /** License:  GPL-3.0**/
 module dutils.sprite;

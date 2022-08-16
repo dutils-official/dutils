@@ -70,6 +70,10 @@ struct Oplist
     {
         mixin("return key " ~ op ~ " ops;");
     }
+    auto keys()
+    {
+        return this.ops.keys;
+    }
     package:
         Operator[dstring] ops;
 }
@@ -88,6 +92,10 @@ struct Funclist
     {
         mixin("return cast(dstring)key " ~ op ~ " funcs;");
     }
+    auto keys()
+    {
+        return this.funcs.keys;
+    }
     package:
         dstring[dstring] funcs;
 }
@@ -95,4 +103,6 @@ struct Funclist
 ///The list of all functions.
 package shared Funclist funcList;
 
-enum string[dstring] typel = null; //Too bad that complete modular programming is impossible in D.
+package import dutils.math.number;
+
+enum dstring[dstring] typel = ["Number"d : "Number"d]; //Too bad that complete modular programming is impossible in D.
