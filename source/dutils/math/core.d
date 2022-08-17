@@ -21,12 +21,12 @@ public import dutils.math.def;
 
 version(DLL)
 {
-	mixin("export:");
+    mixin("export:");
 }
 
 else
 {
-	mixin("public:");
+    mixin("public:");
 }
 
 /********************************************************
@@ -52,6 +52,16 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
     return ret;
 }
 
+///
+@safe unittest
+{
+    dstring func = "(Number)(Number)"d;
+    dstring def = "x1"d;
+    dstring name = "f"d;
+    assert(registerFunction(name, func, def));
+    assert(!registerFunction(name, func, def)); //No registering an already-existing function.
+}
+
 /**************************************************
  * Removes a function provided that it exists.
  *
@@ -72,6 +82,17 @@ bool removeFunction(in dstring name, in dstring func) @safe
         return true;
     }
     return false;
+}
+
+///
+@safe unittest
+{
+    dstring func = "(Number,Number)(Number)d";
+    dstring def = "x1*x2"d;
+    dstring name = "f"d;
+    assert(registerFunction(name, func, def)); //Valid, a different function under the same name is a different function in the library's eyes.
+    assert(removeFunction(name, func));
+    assert(!removeFunction(name, func)); //Cannot remove a non-existent function.
 }
 
 /*******************************************
@@ -204,7 +225,8 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                                         static foreach(type2; typel.keys)
                                         {
                                             case typel[type2]:
-                                                mixin("bool b = opCheckCrap(" ~ type2 ~ "OperandList[0], " ~ type ~ "OperandList[0], currOp);");
+                                                mixin("bool b = opCheckCrap(" ~ type2 ~ "OperandList[0], "
+                                                ~ type ~ "OperandList[0], currOp);");
                                                 if(!b)
                                                     return false;
                                                 break Switch5;
@@ -215,7 +237,7 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                         }
                     }
                     isOp = false;
-                    if(i == def.length-1)
+                    if(i == def.length - 1)
                     {
                         if(!def[i].isNumber && def[i] != d(')'))
                         {
@@ -260,7 +282,7 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                             ++i;
                         }
                         while(def[i] != d(',') && def[i] != d(')')); //Just in case.
-                        bool a = (def[i] == d(')'));
+                        immutable bool a = (def[i] == d(')'));
                         ++i;
                         if(a && ((def[i] == d(',')) ^ (def[i] == d(')'))))
                             tempOps[$-1] ~= d(')'); //Fix bug about functions not working (I think I did, but I might be wrong).
@@ -382,7 +404,8 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                                         static foreach(type2; typel.keys)
                                         {
                                             case typel[type2]:
-                                                mixin("bool b = opCheckCrap(" ~ type2 ~ "OperandList[0], " ~ type ~ "OperandList[0], currOp);");
+                                                mixin("bool b = opCheckCrap(" ~ type2 ~ "OperandList[0], "
+                                                ~ type ~ "OperandList[0], currOp);");
                                                 if(!b)
                                                     return false;
                                                 break Switch7;
@@ -396,7 +419,7 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                     isOp = false;
                     break;
                 default:
-                    auto oldi = i;
+                    immutable oldi = i;
                     dchar[] tempstr = [];
                     do
                     {
@@ -497,7 +520,8 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                                             static foreach(type2; typel.keys)
                                             {
                                                 case typel[type2]:
-                                                    mixin("bool b = opCheckCrap(" ~ type2 ~ "OperandList[0], " ~ type ~ "OperandList[0], currOp);");
+                                                    mixin("bool b = opCheckCrap(" ~ type2 ~ "OperandList[0], "
+                                                    ~ type ~ "OperandList[0], currOp);");
                                                     if(!b)
                                                         return false;
                                                     break Switch9;
@@ -532,13 +556,6 @@ bool validateFunction(in dstring func, in dstring def) @trusted
         while(i < def.length);
         if((isOp || !isOperand) || indentation != 0) //If there are no other syntax errors, ensure the following.
         {
-            debug
-            {
-                import std.stdio;
-                writeln(isOp);
-                writeln(isOperand);
-                writeln(indentation);
-            }
             return false;
         }
         return true;
@@ -568,7 +585,7 @@ bool validateFunction(in dstring func, in dstring def) @trusted
     def = "(x1"d;
     assert(!validateFunction(func, def));
     def = "(x1)"d;
-    assert(validateFunction(func, def)); //BUG: Traling characters are ignored.
+    assert(validateFunction(func, def));
     def = "x1)"d;
     assert(!validateFunction(func, def));
     def = "x1x2"d;
@@ -577,12 +594,21 @@ bool validateFunction(in dstring func, in dstring def) @trusted
     assert(!validateFunction(func, def));
 }
 
+/************************************
+ * Converts a char to a dchar.
+ *
+ * Params:
+ *     c =
+ *        The char to convert.
+ * Returns:
+ *     The char converted to a dchar.
+ */
 package dchar d(char c) pure @safe
 {
     return cast(dchar)c;
 }
 
-package void getParamsReturns(ref dstring[] input, immutable dstring func, ref size_t i) pure @safe //Get the types of the function parameters and the return types.
+private void getParamsReturns(ref dstring[] input, immutable dstring func, ref size_t i) pure @safe //Get the types of the function parameters and the return types.
 in
 {
     assert(func[i] == d('('), [cast(char)func[i]]);
@@ -607,7 +633,7 @@ do
 }
 
 //Function that checks whether using op currOp with type as its lhs and type2 as its rhs is valid.
-package bool opCheckCrap(W, X)(W type, X type2, dstring currOp)//Please god let W and X be inferred from the arguments please.
+private bool opCheckCrap(W, X)(W type, X type2, dstring currOp)//Please god let W and X be inferred from the arguments please.
 {
     return type.applyOp(currOp, type2);
 }
