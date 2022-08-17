@@ -38,7 +38,7 @@ class Mtype(T)
     ///Apply an operation to an Mtype.
     abstract bool applyOp(W)(dstring op, Mtype!W rhs) pure  @safe;
     ///Apply an operation from the right side.
-    final bool applyOpRight(W)(dstring op, ref Mtype!W lhs) pure @safe
+    bool applyOpRight(W)(dstring op, ref Mtype!W lhs) pure @safe
     {
         return lhs.applyOp(op, this);
     }
@@ -52,7 +52,7 @@ class Mtype(T)
     {
         return T.stringof;
     }
-    package:
+    protected:
         T contained;
 }
 
