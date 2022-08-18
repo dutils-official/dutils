@@ -19,9 +19,14 @@ module dutils.math;
 
 version(DLL)
 {
-	export import dutils.math.core;
+    export:
 }
 else
 {
-	public import dutils.math.core;
+    public:
 }
+
+/// Core part of the math library.
+import dutils.math.core;
+/// Implements complex numbers for the math library.
+import dutils.math.number;

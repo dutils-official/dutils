@@ -38,7 +38,7 @@ class Mtype(T)
     ///Apply an operation to an Mtype.
     abstract bool applyOp(W)(dstring op, Mtype!W rhs) pure  @safe;
     ///Apply an operation from the right side.
-    final bool applyOpRight(W)(dstring op, ref Mtype!W lhs) pure @safe
+    bool applyOpRight(W)(dstring op, ref Mtype!W lhs) pure @safe
     {
         return lhs.applyOp(op, this);
     }
@@ -52,7 +52,7 @@ class Mtype(T)
     {
         return T.stringof;
     }
-    package:
+    protected:
         T contained;
 }
 
@@ -69,6 +69,10 @@ struct Oplist
     auto opBinaryRight(string op)(dstring key) pure @safe const shared if(op == "in" || op == "!in")
     {
         mixin("return key " ~ op ~ " ops;");
+    }
+    auto keys()
+    {
+        return this.ops.keys;
     }
     package:
         Operator[dstring] ops;
@@ -88,6 +92,10 @@ struct Funclist
     {
         mixin("return cast(dstring)key " ~ op ~ " funcs;");
     }
+    auto keys()
+    {
+        return this.funcs.keys;
+    }
     package:
         dstring[dstring] funcs;
 }
@@ -95,4 +103,6 @@ struct Funclist
 ///The list of all functions.
 package shared Funclist funcList;
 
-enum string[dstring] typel = null; //Too bad that complete modular programming is impossible in D.
+package import dutils.math.number;
+
+enum dstring[dstring] typel = ["Number"d : "Number"d]; //Too bad that complete modular programming is impossible in D.
