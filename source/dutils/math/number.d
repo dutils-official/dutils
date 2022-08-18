@@ -116,8 +116,8 @@ class Number : Mtype!NumberContainer
      */
     override void fromDstring(dstring from) pure @safe
     {
-        dstring val;
-        dstring ival;
+        dchar[] val;
+        dchar[] ival;
         size_t i;
         do
         {
@@ -131,6 +131,80 @@ class Number : Mtype!NumberContainer
             ++i;
         }
         while(i < from.length);
+
+        i = 0;
+        size_t dec = 0;
+        long z = 0;
+        size_t firstz = 0;
+        size_t[] zi;
+        this.contained.val = BigInt(0);
+        import std.conv : to;
+        bool neg = false;
+        if(val[0] == d('-'))
+        {
+            neg = true;
+            val[0 .. $-1] = val[1 .. $].dup;
+            --val.length;
+        }
+        pragma(inline, true) void inFunc(in dchar[] val, ref BigInt ival)
+        {
+            do
+            {
+                if(val[i] == d('.'))
+                {
+                    dec = i;
+                    ++i;
+                }
+                else if(val[i] == d('0'))
+                {
+                    if(firstz == 0)
+                        firstz = i;
+                    zi ~= i;
+                    ++i;
+                }
+                ival += to!ubyte(val[i]) * (BigInt(10) ^^ (val.length-1-i));
+                ++i;
+            }
+            while(i < val.length);
+            i = 0;
+
+            if(neg)
+                ival *= -1;
+            neg = false;
+        }
+        if(dec == 0)
+            this.contained.pow10 = zi.length;
+        else if(firstz == 0)
+            this.contained.pow10 = -zi.length-1;
+        else //Oy Vey
+        {
+            if(val[0] == d('.'))
+            {
+                z = 0;
+                do
+                {
+                    ++i;
+                }
+                while(zi[i] < dec);
+
+                ++z;
+                bool f = true;
+                do
+                {
+                    if(!f)
+                        ++z;
+                    f = false;
+                    ++i;
+                }
+                while(i < zi.length-1 && zi[i-1] == zi[i] -1);
+            }
+            else
+                this.contained.pow10 = val.length-1-dec;
+        }
+        inFunc(val, this.contained.val);
+        
+        --ival.length; //The last character of ival is d('i'), which is a non integer.
+        inFunc(ival, this.contained.ival);
     }
 
     /*************************************************
@@ -181,6 +255,11 @@ class Number : Mtype!NumberContainer
         temp.val = this.val;
         temp.applyOp!W(op, rhs);
         return new Number(temp.val);
+    }
+
+    bool opEquals(in Number rhs) pure const @safe nothrow @nogc
+    {
+        return (this.contained == rhs.contained);
     }
 }
 
@@ -331,7 +410,7 @@ struct NumberContainer
         }
         else static if(op == "^^")
         {
-            //Oy Vey:  I ain't implementing this until function execution and exponential functions exist..
+            //Oy Vey:  I ain't implementing this until function execution and exponential functions exist.
         }
         else static if(op == "*")
         {
@@ -376,6 +455,15 @@ struct NumberContainer
         return ret;
     }
 
+    /*************************************
+     * Determine if two Numbers are equal.
+     *
+     * Params:
+     *     rhs =
+     *         The Number to compare with.
+     * Returns:
+     *     Whether this is equal to rhs.
+     */
     bool opEquals(in NumberContainer rhs) pure @safe nothrow const @nogc
     {
         return ((this.val == rhs.val) && (this.ival == rhs.ival))
