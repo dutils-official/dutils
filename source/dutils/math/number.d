@@ -65,7 +65,7 @@ class Number : Mtype!NumberContainer
             {
                 temp ~= temp2;
                 temp.length += this.contained.pow10;
-                temp[$-1-this.contained.pow10 .. $] = '0';
+                temp[$-this.contained.pow10 .. $] = '0';
             }
             else if(this.contained.pow10 < 0)
             {
@@ -79,8 +79,8 @@ class Number : Mtype!NumberContainer
                 {
                     temp.length -= (this.contained.pow10);
                     temp[i] = '.';
-                    temp[i+1 .. i-(this.contained.pow10+temp2.length)] = '0';
-                    temp[i-(this.contained.pow10 + temp2.length) .. $] = temp2.dup;
+                    temp[i+1 .. i+1-(this.contained.pow10+temp2.length)] = '0';
+                    temp[i+1-(this.contained.pow10 + temp2.length) .. $] = temp2.dup;
                 }
                 else
                 {
@@ -116,7 +116,21 @@ class Number : Mtype!NumberContainer
      */
     override void fromDstring(dstring from) pure @safe
     {
-        //Placeholder
+        dstring val;
+        dstring ival;
+        size_t i;
+        do
+        {
+            val ~= from[i];
+            ++i;
+        }
+        while(i == 0 || (from[i] != d('+') && from[i] != d('-')));
+        do
+        {
+            ival ~= from[i];
+            ++i;
+        }
+        while(i < from.length);
     }
 
     /*************************************************
@@ -168,6 +182,23 @@ class Number : Mtype!NumberContainer
         temp.applyOp!W(op, rhs);
         return new Number(temp.val);
     }
+}
+
+///
+pure @safe unittest {
+    BigInt a = 1;
+    immutable BigInt b = -1;
+    immutable long c = 0;
+    Number e = new Number(NumberContainer(a,b,c));
+    a = 2;
+    Number f = new Number(NumberContainer(a,b,c));
+    e.applyOp("/", f);
+    assert(e.val == NumberContainer(BigInt(6), BigInt(-2), -1L));
+    assert(e.toDstring == ".6-.2i"d);
+    f = new Number(NumberContainer(BigInt(6), BigInt(0), 1L));
+    assert(f.toDstring == "60+00i"d);
+    f = new Number(NumberContainer(BigInt(6), BigInt(0), -2L));
+    assert(f.toDstring == ".06+.00i"d, cast(char[])f.toDstring.dup);
 }
 
 ///Type that is contained by Number.
@@ -358,17 +389,4 @@ struct NumberContainer
         else static if(is(size_t == uint))
             int pow10;
         ulong precision;
-}
-
-///
-pure @safe unittest {
-    BigInt a = 1;
-    immutable BigInt b = -1;
-    immutable long c = 0;
-    Number e = new Number(NumberContainer(a,b,c));
-    a = 2;
-    Number f = new Number(NumberContainer(a,b,c));
-    e.applyOp("/", f);
-    assert(e.val == NumberContainer(BigInt(6), BigInt(-2), -1L));
-    assert(e.toDstring == ".6-.2i"d, cast(string)e.toDstring);
 }
