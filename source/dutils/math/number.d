@@ -279,6 +279,23 @@ pure @safe unittest {
     assert(g == f.toDstring);
 }
 
+///
+pure @safe unittest {
+    BigInt a = 1;
+    immutable BigInt b = -1;
+    immutable long c = 0;
+    Number e = new Number(NumberContainer(a,b,c));
+    a = 2;
+    Number f = new Number(NumberContainer(a,b,c));
+    e.applyOp("/", f);
+    assert(e.val == NumberContainer(BigInt(6), BigInt(-2), -1L));
+    assert(e.toDstring == ".6-.2i"d);
+    f = new Number(NumberContainer(BigInt(6), BigInt(0), 1L));
+    assert(f.toDstring == "60+00i"d);
+    f = new Number(NumberContainer(BigInt(6), BigInt(0), -2L));
+    assert(f.toDstring == ".06+.00i"d, cast(char[])f.toDstring.dup);
+}
+
 ///Type that is contained by Number.
 struct NumberContainer
 {
