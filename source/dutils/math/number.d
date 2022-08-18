@@ -133,11 +133,10 @@ class Number : Mtype!NumberContainer
         while(i < from.length);
 
         i = 0;
-        size_t dec = 0;
+        long dec = -1;
         long z = 0;
         size_t firstz = 0;
         size_t[] zi;
-        this.contained.val = BigInt(0);
         import std.conv : to;
         bool neg = false;
         if(val[0] == d('-'))
@@ -146,64 +145,57 @@ class Number : Mtype!NumberContainer
             val[0 .. $-1] = val[1 .. $].dup;
             --val.length;
         }
-        pragma(inline, true) void inFunc(in dchar[] val, ref BigInt ival)
+        pragma(inline, true) void inFunc(in dchar[] val, ref BigInt rval)
         {
+            rval = BigInt(0);
             do
             {
                 if(val[i] == d('.'))
                 {
                     dec = i;
                     ++i;
+                    continue;
                 }
+
                 else if(val[i] == d('0'))
                 {
                     if(firstz == 0)
                         firstz = i;
                     zi ~= i;
                     ++i;
+                    continue;
                 }
-                ival += to!ubyte(val[i]) * (BigInt(10) ^^ (val.length-1-i));
+                BigInt temp = BigInt(10);
+                temp ^^= (val.length-1-i);
+                temp *= BigInt(to!ubyte([val[i]]));
+                rval = temp;
                 ++i;
             }
             while(i < val.length);
             i = 0;
 
             if(neg)
-                ival *= -1;
+                rval *= -1;
             neg = false;
         }
-        if(dec == 0)
+        
+        inFunc(val, this.contained.val);
+        if(dec == -1)
             this.contained.pow10 = zi.length;
         else if(firstz == 0)
-            this.contained.pow10 = -zi.length-1;
-        else //Oy Vey
-        {
-            if(val[0] == d('.'))
-            {
-                z = 0;
-                do
-                {
-                    ++i;
-                }
-                while(zi[i] < dec);
-
-                ++z;
-                bool f = true;
-                do
-                {
-                    if(!f)
-                        ++z;
-                    f = false;
-                    ++i;
-                }
-                while(i < zi.length-1 && zi[i-1] == zi[i] -1);
-            }
-            else
-                this.contained.pow10 = val.length-1-dec;
-        }
-        inFunc(val, this.contained.val);
-        
+            this.contained.pow10 = -zi.length; 
+        else
+            this.contained.pow10 = -(val.length-1-dec);
+        firstz = 0;
+        zi = [];
+        z = 0;
+        i = 0;
+        dec = 0;
         --ival.length; //The last character of ival is d('i'), which is a non integer.
+        if(ival[0] == d('-'))
+            neg = true;
+        ival[0 .. $-1] = ival[1 .. $].dup;
+        --ival.length;
         inFunc(ival, this.contained.ival);
     }
 
@@ -278,6 +270,13 @@ pure @safe unittest {
     assert(f.toDstring == "60+00i"d);
     f = new Number(NumberContainer(BigInt(6), BigInt(0), -2L));
     assert(f.toDstring == ".06+.00i"d, cast(char[])f.toDstring.dup);
+    auto g = f.toDstring;
+    f.fromDstring(g);
+    assert(g == f.toDstring);
+    f = new Number(NumberContainer(BigInt(3), BigInt(6), -23L));
+    g = f.toDstring;
+    f.fromDstring(g);
+    assert(g == f.toDstring);
 }
 
 ///Type that is contained by Number.
