@@ -638,4 +638,4 @@ private bool opCheckCrap(W, X)(W type, X type2, dstring currOp)//Please god let 
     return type.applyOp(currOp, type2);
 }
 
-public import std.typecons;
+

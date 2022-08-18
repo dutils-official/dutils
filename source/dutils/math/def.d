@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: August 2, 2021*/
+/**Date: August 18, 2021*/
 /** License:  GPL-3.0**/
 
 ///Definitions for dutils.math.core so as to not clog up the whole file.
@@ -56,7 +56,7 @@ class Mtype(T)
         T contained;
 }
 
-
+///Define an Operator as used by dutils.math.
 alias Operator = dstring function(dstring);
 
 ///Container for the list of all operators.
@@ -105,4 +105,5 @@ package shared Funclist funcList;
 
 package import dutils.math.number;
 
+///The list of all types, that has to be kept here and continously updated.
 enum dstring[dstring] typel = ["Number"d : "Number"d]; //Too bad that complete modular programming is impossible in D.

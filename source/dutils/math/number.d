@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: August 17, 2021*/
+/**Date: August 18, 2021*/
 /** License:  GPL-3.0**/
 
 ///Module for representing numbers.
@@ -169,6 +169,12 @@ class Number : Mtype!NumberContainer
                 temp ^^= (val.length-1-i);
                 temp *= BigInt(to!ubyte([val[i]]));
                 rval = temp;
+                debug
+                {
+                    import std.stdio;
+                    writeln(val.length-1-i);
+                    writeln(val[i]);
+                }
                 ++i;
             }
             while(i < val.length);
@@ -181,11 +187,28 @@ class Number : Mtype!NumberContainer
         
         inFunc(val, this.contained.val);
         if(dec == -1)
+        {
             this.contained.pow10 = zi.length;
+            do
+            {
+                if(zi.length == 0)
+                    break;
+                ++i;
+            }
+            while(i < zi.length-1 && zi[i-1] == zi[i] -1);
+            this.contained.val /= BigInt(10) ^^ i;
+        }
         else if(firstz == 0)
             this.contained.pow10 = -zi.length; 
         else
-            this.contained.pow10 = -(val.length-1-dec);
+        {
+            if(dec == 0)
+            {
+                
+            }
+            else
+                this.contained.pow10 = -(val.length-1-dec);
+        }
         firstz = 0;
         zi = [];
         z = 0;
@@ -249,6 +272,15 @@ class Number : Mtype!NumberContainer
         return new Number(temp.val);
     }
 
+    /*****************************************
+     * Detrmine if two Numbers are equal.
+     *
+     * Params:
+     *     rhs =
+     *        The Number to compare `this` to.
+     * Returns:
+     *     Whether `this` and rhs are equal.
+     */
     bool opEquals(in Number rhs) pure const @safe nothrow @nogc
     {
         return (this.contained == rhs.contained);
@@ -268,32 +300,18 @@ pure @safe unittest {
     assert(e.toDstring == ".6-.2i"d);
     f = new Number(NumberContainer(BigInt(6), BigInt(0), 1L));
     assert(f.toDstring == "60+00i"d);
+    auto g = f.toDstring;
+    f.fromDstring(g);
+    assert(f.toDstring == g, cast(char[])f.toDstring.dup);
     f = new Number(NumberContainer(BigInt(6), BigInt(0), -2L));
     assert(f.toDstring == ".06+.00i"d, cast(char[])f.toDstring.dup);
-    auto g = f.toDstring;
+    g = f.toDstring;
     f.fromDstring(g);
     assert(g == f.toDstring);
     f = new Number(NumberContainer(BigInt(3), BigInt(6), -23L));
     g = f.toDstring;
     f.fromDstring(g);
     assert(g == f.toDstring);
-}
-
-///
-pure @safe unittest {
-    BigInt a = 1;
-    immutable BigInt b = -1;
-    immutable long c = 0;
-    Number e = new Number(NumberContainer(a,b,c));
-    a = 2;
-    Number f = new Number(NumberContainer(a,b,c));
-    e.applyOp("/", f);
-    assert(e.val == NumberContainer(BigInt(6), BigInt(-2), -1L));
-    assert(e.toDstring == ".6-.2i"d);
-    f = new Number(NumberContainer(BigInt(6), BigInt(0), 1L));
-    assert(f.toDstring == "60+00i"d);
-    f = new Number(NumberContainer(BigInt(6), BigInt(0), -2L));
-    assert(f.toDstring == ".06+.00i"d, cast(char[])f.toDstring.dup);
 }
 
 ///Type that is contained by Number.
