@@ -1,4 +1,4 @@
-# Changelog for dutils v0.2.0 as of August 5, 2022
+# Changelog for dutils v0.2.0 as of August 17, 2022
 
 ## NEW
 
@@ -8,8 +8,8 @@
 
 -  dutils.math.def contains the definitions for the template mathematical type:  Mtype, and for the wrappers for the function and operator lists.
 
--  dutils.math.number contains the definition of the Number type, which is currently incomplete.
-   The Number type currently supports four operations: +, -, *, and /, and the ability to serialize to a string via toDstring.
+-  dutils.math.number contains the definition of the Number type, which is currently incomplete and undocumented.
+   The Number type currently supports four operations: +, -, *, and /, and the function toDstring.
 
 -  dutils.math.core currently only supports registering and validating a function.
 
