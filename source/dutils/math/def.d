@@ -57,7 +57,7 @@ class Mtype(T)
 }
 
 ///Define an Operator as used by dutils.math.
-alias Operator = dstring function(dstring);
+alias Operator = dstring function(dstring[]);
 
 ///Container for the list of all operators.
 struct Oplist

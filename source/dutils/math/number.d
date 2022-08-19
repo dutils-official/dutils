@@ -169,12 +169,6 @@ class Number : Mtype!NumberContainer
                 temp ^^= (val.length-1-i);
                 temp *= BigInt(to!ubyte([val[i]]));
                 rval = temp;
-                debug
-                {
-                    import std.stdio;
-                    writeln(val.length-1-i);
-                    writeln(val[i]);
-                }
                 ++i;
             }
             while(i < val.length);
@@ -201,14 +195,7 @@ class Number : Mtype!NumberContainer
         else if(firstz == 0)
             this.contained.pow10 = -zi.length; 
         else
-        {
-            if(dec == 0)
-            {
-                
-            }
-            else
-                this.contained.pow10 = -(val.length-1-dec);
-        }
+            this.contained.pow10 = -(val.length-1-dec);
         firstz = 0;
         zi = [];
         z = 0;
@@ -237,7 +224,7 @@ class Number : Mtype!NumberContainer
     in
     {
         assert(is(W == NumberContainer));
-        assert((op == "+"d) ^ (op == "-"d) ^ (op == "*"d) ^ (op == "/"d) ^ (op == "^^"d));
+        assert((op == "+"d) ^ (op == "-"d) ^ (op == "*"d) ^ (op == "/"d) ^ (op == "^^"d), cast(char[])op.dup);
     }
     do
     {
