@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: August 18, 2021*/
+/**Date: August 30, 2021*/
 /** License:  GPL-3.0**/
 
 ///Module for representing numbers.
@@ -43,10 +43,22 @@ class Number : Mtype!NumberContainer
      *     num =
      *         The value to contain within the Number.
      */
-    this(in NumberContainer num = NumberContainer(BigInt(0),BigInt(0),0)) pure @safe nothrow @nogc
+    this(in NumberContainer num = NumberContainer(BigInt(0), BigInt(0), 0)) pure @safe nothrow
     {
-        this.contained = num;
+        super(num);
     }
+
+    /************************************************
+     * Constructs a Number using precision only.
+     *
+     * Params:
+     *     precision =
+     *          The precision of the NumberContainer.
+     */
+     this(ulong precision) pure @safe nothrow
+     {
+        super(precision);
+     }
 
     /***********************************************
      * Represents a Number as a dstring.
@@ -82,13 +94,23 @@ class Number : Mtype!NumberContainer
                     temp[i+1 .. i+1-(this.contained.pow10+temp2.length)] = '0';
                     temp[i+1-(this.contained.pow10 + temp2.length) .. $] = temp2.dup;
                 }
-                else
+                else if(temp2.length == -this.contained.pow10)
                 {
                     temp2 = temp[i-1-this.contained.pow10 .. $].dup;
                     temp[i-1-this.contained.pow10] = '.';
                     ++temp.length;
                     temp[i-this.contained.pow10 .. $] = temp2.dup;
                 }
+                else
+                {
+                    ++temp.length;
+                    temp[i-this.contained.pow10 .. $] = temp[i .. $-1].dup;
+                    temp[i-this.contained.pow10] = '.';
+                }
+            }
+            else
+            {
+                temp ~= temp2;
             }
         }
         inFunc(0, this.contained.val);
@@ -224,7 +246,7 @@ class Number : Mtype!NumberContainer
     in
     {
         assert(is(W == NumberContainer));
-        assert((op == "+"d) ^ (op == "-"d) ^ (op == "*"d) ^ (op == "/"d) ^ (op == "^^"d), cast(char[])op.dup);
+        assert((op == "+"d) ^ (op == "-"d) ^ (op == "*"d) ^ (op == "/"d) ^ (op == "^^"d));
     }
     do
     {
@@ -299,6 +321,10 @@ pure @safe unittest {
     g = f.toDstring;
     f.fromDstring(g);
     assert(g == f.toDstring);
+    f = new Number(NumberContainer(BigInt(6), BigInt(0), 0L));
+    assert(f.toDstring == "6+0i"d);
+    f = new Number(NumberContainer(BigInt(60), BigInt(0), -1L));
+    assert(f.toDstring == "6.0+.0i"d, cast(char[])f.toDstring.dup);
 }
 
 ///Type that is contained by Number.
@@ -490,7 +516,7 @@ struct NumberContainer
         return ((this.val == rhs.val) && (this.ival == rhs.ival))
         && ((this.pow10 == rhs.pow10) && (this.precision == rhs.precision));
     }
-    private:
+    package:
         BigInt val;
         BigInt ival;
         static if(is(size_t == ulong))
