@@ -27,9 +27,11 @@ version(Standard)
 {
     public:
 }
+private alias Unshared(T) = T;
+private alias Unshared(T: shared U, U) = U;
 
 ///Base class for all math types.
-class Mtype(T) if(__traits(hasMember, T, "precision"))
+abstract class Mtype(T) if(__traits(hasMember, T, "precision"))
 {
     ///Converts the Mtype to a dstring.
     abstract dstring toDstring() const @property pure @safe;
