@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: August 30, 2021*/
+/**Date: September 6, 2022*/
 /** License:  GPL-3.0**/
 
 ///Core part of the dutils math library.
@@ -713,7 +713,61 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
         {
             for(j = exprList[key][i].length-1; j < exprList[key][i].length; j--)
             {
-                if(exprList[key][i][j].isNumber) //Take care of parameters.
+                if(j in exprGlue[key][i]) //Glue stuff together
+                {
+                    if(exprGlue[key][i][j][0] != d(')') && exprGlue[key][i][j][$-1] == d('('))
+                        currOp = exprGlue[key][i][j][1 .. $].idup;
+                    else if(exprGlue[key][i][j][0] == d(')') && exprGlue[key][i][j][$-1] != d('('))
+                        currOp = exprGlue[key][i][j].idup;
+                    else
+                        currOp = exprGlue[key][i][j][1 .. $-1].idup;
+                    auto keys2 = exprGlue[key][i].keys.sort!"b < a";
+                    import std.algorithm.searching : findSplitBefore;
+                    size_t pos = 0;
+                    for(; keys2[pos] != j; pos++)
+                    {
+                    }
+                    if(exprGlue[key][i][j][0] == d(')') && exprGlue[key][i][j][$-1] == d('('))
+                    {
+                        amongDeezNuts: final switch(tempTypes[key+1][pos-1])
+                        {
+                            static foreach(type; typel)
+                            {
+                                case type:
+                                    mixin("amongDeezNuts" ~ type ~ ": final switch(tempTypes[key+1][pos])
+                                    {
+                                        static foreach(type2; typel)
+                                        {
+                                            case type2:
+                                                tempTypes[key][i] = type;
+                                                mixin(\"temp\" ~ type ~ \"[key][i] = new \" ~ type ~ \"(temp\" ~ type ~ \"[key+1][pos-1].val);\");
+                                                mixin(\"temp\" ~ type ~ \"[key][i].applyOp(currOp, temp\" ~ type2 ~ \"[key+1][pos]);\");
+                                                break amongDeezNuts" ~ type ~ ";
+                                        }
+                                    }");
+                                    break amongDeezNuts;
+                            }
+                        }
+                    }
+                    else if(exprGlue[key][i][j][0] == d(')') && exprGlue[key][i][j][$-1] != d('('))
+                    {
+                        //Placeholder
+                    }
+                    else
+                    {
+                        among: final switch(tempTypes[key+1][pos])
+                        {
+                            static foreach(type; typel)
+                            {
+                                case type:
+                                    tempTypes[key][i] = type;
+                                    mixin("temp" ~ type ~ "[key][i].applyOp(currOp, temp" ~ type ~ "[key+1][pos]);");
+                                    break among;
+                            }
+                        }
+                    }
+                }
+                else if(exprList[key][i][j].isNumber) //Take care of parameters.
                 {
                     dstring tempNum = ""d;
                     isOperand = true;

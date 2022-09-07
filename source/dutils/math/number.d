@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: August 30, 2021*/
+/**Date: August 30, 2022*/
 /** License:  GPL-3.0**/
 
 ///Module for representing numbers.
