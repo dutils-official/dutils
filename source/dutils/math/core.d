@@ -655,7 +655,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                 --currIndentation;
                 break;
             case d('x'): //Parameters
-                dstring tempNum = "x"d;
+                dstring tempNum = ""d;
                 do
                 {
                     tempNum ~= def[i];
@@ -665,6 +665,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                 }
                 while(def[i].isNumber);
                 exprList[currIndentation][$-1] ~= tempNum;
+                --i;
                 break;
             case d(' '):
                 exprList[currIndentation][$-1] ~= def[i];
@@ -688,6 +689,11 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                 do
                 {
                     tempOp ~= def[i];
+                    debug
+                    {
+                        import std.stdio;
+                        writeln(tempOp);
+                    }
                     ++i;
                 }
                 while(def[i] != d(' ') && def[i] != d('x') && def[i] != d('\\') && def[i] != d('(')
@@ -703,10 +709,16 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     exprList[currIndentation][$-1] ~= tempOp;
         }
     }
-    //Compute the values of exprList (except for exprList[0])
+    //Compute the values of exprList.
     dstring currOperand = ""d;
     dstring currOp = ""d;
     auto keys = exprList.keys.sort!"b > a";
+    debug
+    {
+        import std.stdio;
+        writeln(exprList[0][0]);
+        writeln(exprGlue);
+    }
     for(size_t key = 0; key > keys[$-1]; --key)
     {
         for(i = 0; i < exprList[key].length; i++)
@@ -978,7 +990,15 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
             }
         }
     }
-    //Glue them all together
+    BRUHBRUH: final switch(Return.stringof)
+    {
+        static foreach(type; typel)
+        {
+            case type:
+                mixin("ret = new " ~ type ~ "(temp" ~ type ~ "[0][0].val);");
+                break BRUHBRUH;
+        }
+    }
     isOp = false;
     isOperand = true;
     currOp = ""d;
