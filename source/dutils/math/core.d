@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: September 6, 2022*/
+/**Date: September 12, 2022*/
 /** License:  GPL-3.0**/
 
 ///Core part of the dutils math library.
@@ -809,7 +809,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     }
                     while(exprList[key][i][j].isNumber);
                     tempNum = tempNum.dup.reverse.idup;
-                    if(isOp) //Bug Here:
+                    if(isOp)
                     {
                         r: final switch(to!size_t(tempNum)-1)
                         {
@@ -1048,13 +1048,14 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
 ///
 @safe unittest
 {
-    Tuple!(Number, Number) a;
+    Tuple!(Number, Number, Number) a;
     a[0] = new Number(NumberContainer(BigInt(2), BigInt(0), 0L, 18UL));
     a[1] = new Number(NumberContainer(BigInt(3), BigInt(0), 0L, 18UL));
-    dstring func = "(Number,Number)(Number)"d;
-    dstring def = "x1*x2"d;
+    a[2] = new Number(NumberContainer(BigInt(1), BigInt(0), 0L, 18UL));
+    dstring func = "(Number,Number,Number)(Number)"d;
+    dstring def = "x1*x2*x3"d;
     auto r = registerFunction("ree"d, func, def);
     assert(r);
-    auto i = executeFunction!(Number, Number, Number)("ree(Number,Number)(Number)"d, a);
+    auto i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
 }
