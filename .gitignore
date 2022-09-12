@@ -1,0 +1,13 @@
+# The build folder
+lib/
+
+# The documentation folder
+docs/
+
+# The .dub folder
+.dub/
+
+# The DlangIDE Generated Files
+.settings
+dutils.settings
+dutils
