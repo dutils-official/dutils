@@ -546,7 +546,7 @@ private bool opCheckCrap(W, X)(W type, X type2, dstring currOp)//Please god let 
 ///We need the tuple type for executeFunction.
 import std.typecons : Tuple;
 
-/*********************************************************
+/***********************************************************
  * Executes a function.
  *
  * Params:
@@ -558,8 +558,11 @@ import std.typecons : Tuple;
  *         The precision of the returned Mtype.
  * Returns:
  *     The result of calling the function.
- * Bugs:
- *     Evaluating the result of an expression is a WIP.
+ * TODO:
+ *     There is a section of the loop pertaining to
+ *     operator execution on paramaters that gets executed
+ *     twice.  This has been patched, but an actual solution
+ *     is wanted.
  */
 Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) args, ulong precision = 18L) @safe
 {
@@ -806,19 +809,15 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     }
                     while(exprList[key][i][j].isNumber);
                     tempNum = tempNum.dup.reverse.idup;
-                    if(isOp)
+                    if(isOp) //Bug Here:
                     {
-                        debug
-                        {
-                            writeln("HERE");
-                            writeln(tempTypes);
-                        }
                         r: final switch(to!size_t(tempNum)-1)
                         {
                             static foreach(tempNumber2; 0 .. args.fieldNames.length)
                             {
                                 case tempNumber2:
-                                    static foreach(ree; 0 .. args.expand.length)
+                                    bool ins = false;
+                                    static foreach(ree; 0 .. args.fieldNames.length)
                                     {
                                         mixin("Switch14"d ~ to!dstring(ree) ~ to!dstring(tempNumber2) ~ ": final switch(to!dstring(Unconst!(typeof(args[tempNumber2])).stringof))
                                         {
@@ -830,16 +829,24 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                                         static foreach(type2; typel)
                                                         {
                                                             case type2:
-                                                                mixin(\\\"temp\\\"d ~ type ~ \\\"[key][i] = new \\\"d  ~ type ~
-                                                                \\\"(args[tempNumber2].val);\\\"d);
-                                                                debug
+                                                                if(!ins)
                                                                 {
-                                                                    mixin(\\\"writeln(temp\\\" ~ type ~ \\\"[key][i].toDstring, tempNumber2);\\\");
-                                                                    mixin(\\\"writeln(temp\\\" ~ type2 ~ \\\"[key][i].toDstring);\\\");
+                                                                    ins = true;
+                                                                    mixin(type ~ \\\"[size_t][size_t] temp2;\\\"d);
+                                                                    mixin(\\\"foreach(bruh1; temp\\\" ~ type ~ \\\".keys)
+                                                                    {
+                                                                        foreach(bruh2; temp\\\" ~ type ~ \\\"[bruh1].keys)
+                                                                        {
+                                                                            temp2[bruh1][bruh2] = new \\\" ~ type ~ \\\"(temp\\\" ~ type ~ \\\"[bruh1][bruh2].val);
+                                                                        }
+                                                                    }\\\");
+                                                                    mixin(\\\"temp2[key][i] = new \\\" ~ type ~ \\\"(args[tempNumber2].val);\\\");
+                                                                    mixin(\\\"temp2[key][i].applyOp(currOp, temp\\\"d
+                                                                    ~ type2 ~ \\\"[key][i]);\\\"d);
+                                                                    mixin(\\\"temp\\\" ~ type ~ \\\" = temp2;\\\");
+                                                                    tempTypes[key][i] = Unconst!(typeof(args[tempNumber2])).stringof;
+                                                                    break Switch15\"d ~ type ~ to!dstring(ree) ~ to!dstring(tempNumber2) ~ \";
                                                                 }
-                                                                mixin(\\\"temp\\\"d ~ type ~ \\\"[key][i].applyOp(currOp, temp\\\"d
-                                                                ~ type2 ~ \\\"[key][i]);\\\"d);
-                                                                break Switch15\"d ~ type ~ to!dstring(ree) ~ to!dstring(tempNumber2) ~ \";
                                                         }
                                                     }\"d);
                                                     break Switch14"d ~ to!dstring(ree) ~ to!dstring(tempNumber2) ~  ";
@@ -870,6 +877,11 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                                             mixin(\\\"temp\\\"d ~ type ~ \\\"[key][i] = new \\\"d  ~ type ~
                                                             \\\"(args[tempNumber2].val);\\\"d);
                                                             mixin(\\\"tempTypes[key][i] = \\\"d ~ type.stringof ~ \\\";\\\"d);
+                                                            debug
+                                                            {
+                                                                writeln(\\\"NOOP: \\\", tempNumber3);
+                                                                mixin(\\\"writeln(temp\\\" ~ type ~ \\\"[key][i].toDstring);\\\");
+                                                            }
                                                             break z\" ~ to!string(tempNumber3) ~ \";
                                                     }
                                                 }\");
@@ -999,7 +1011,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                 {
                     debug
                     {
-                        writeln("HERE");
+                        writeln("HEREOP");
                     }
                     dstring tempOp = ""d;
                     isOp = true;
@@ -1010,6 +1022,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     }
                     while(exprList[key][i][j] != d('\\') && exprList[key][i][j] != d(' ') &&
                     !exprList[key][i][j].isNumber && exprList[key][i][j] != d(')'));
+                    debug writeln(tempOp, tempOp.length);
                     ++j;
                     tempOp = tempOp.dup.reverse.idup;
                     currOp = tempOp;
