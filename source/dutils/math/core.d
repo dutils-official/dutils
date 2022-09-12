@@ -558,8 +558,8 @@ import std.typecons : Tuple;
  *         The precision of the returned Mtype.
  * Returns:
  *     The result of calling the function.
- * TODO:
- *     Execute functions and do glueing.
+ * Bugs:
+ *     Evaluating the result of an expression is a WIP.
  */
 Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) args, ulong precision = 18L) @safe
 {
@@ -726,13 +726,12 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     {
         for(i = 0; i < exprList[key].length; i++)
         {
+            tempTypes[key].length = i+1;
             for(j = exprList[key][i].length-1; j < exprList[key][i].length; j--)
             {
                 debug
                 {
-                    writeln("i:",i);
                     writeln(j);
-                    writeln(key);
                 }
                 if(exprGlue.keys.length > 0)
                 {
@@ -809,6 +808,11 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     tempNum = tempNum.dup.reverse.idup;
                     if(isOp)
                     {
+                        debug
+                        {
+                            writeln("HERE");
+                            writeln(tempTypes);
+                        }
                         r: final switch(to!size_t(tempNum)-1)
                         {
                             static foreach(tempNumber2; 0 .. args.fieldNames.length)
@@ -816,7 +820,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                 case tempNumber2:
                                     static foreach(ree; 0 .. args.expand.length)
                                     {
-                                        mixin("Switch14"d ~ to!dstring(ree) ~ to!dstring(tempNumber2) ~ ": final switch(to!dstring(typeof(args[tempNumber2]).stringof))
+                                        mixin("Switch14"d ~ to!dstring(ree) ~ to!dstring(tempNumber2) ~ ": final switch(to!dstring(Unconst!(typeof(args[tempNumber2])).stringof))
                                         {
                                             static foreach(type; typel)
                                             {
@@ -828,6 +832,11 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                                             case type2:
                                                                 mixin(\\\"temp\\\"d ~ type ~ \\\"[key][i] = new \\\"d  ~ type ~
                                                                 \\\"(args[tempNumber2].val);\\\"d);
+                                                                debug
+                                                                {
+                                                                    mixin(\\\"writeln(temp\\\" ~ type ~ \\\"[key][i].toDstring, tempNumber2);\\\");
+                                                                    mixin(\\\"writeln(temp\\\" ~ type2 ~ \\\"[key][i].toDstring);\\\");
+                                                                }
                                                                 mixin(\\\"temp\\\"d ~ type ~ \\\"[key][i].applyOp(currOp, temp\\\"d
                                                                 ~ type2 ~ \\\"[key][i]);\\\"d);
                                                                 break Switch15\"d ~ type ~ to!dstring(ree) ~ to!dstring(tempNumber2) ~ \";
@@ -860,6 +869,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                                         case tempNumber2:
                                                             mixin(\\\"temp\\\"d ~ type ~ \\\"[key][i] = new \\\"d  ~ type ~
                                                             \\\"(args[tempNumber2].val);\\\"d);
+                                                            mixin(\\\"tempTypes[key][i] = \\\"d ~ type.stringof ~ \\\";\\\"d);
                                                             break z\" ~ to!string(tempNumber3) ~ \";
                                                     }
                                                 }\");
@@ -872,8 +882,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     }
                     isOp = false;
                     isOperand = true;
-                    if(j < exprList[key][i].length)
-                         --j;
                     currOperand = "x"d ~ tempNum;
                 }
                 else if(exprList[key][i][j] == d('\\')) //Special Operator
@@ -989,6 +997,10 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     continue;
                 else //Operator
                 {
+                    debug
+                    {
+                        writeln("HERE");
+                    }
                     dstring tempOp = ""d;
                     isOp = true;
                     do
@@ -1025,11 +1037,11 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
 {
     Tuple!(Number, Number) a;
     a[0] = new Number(NumberContainer(BigInt(2), BigInt(0), 0L, 18UL));
-    a[1] = a[0];
+    a[1] = new Number(NumberContainer(BigInt(3), BigInt(0), 0L, 18UL));
     dstring func = "(Number,Number)(Number)"d;
     dstring def = "x1*x2"d;
     auto r = registerFunction("ree"d, func, def);
     assert(r);
     auto i = executeFunction!(Number, Number, Number)("ree(Number,Number)(Number)"d, a);
-    assert(i.toDstring == "4+0i"d, cast(char[])i.toDstring.dup);
+    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
 }
