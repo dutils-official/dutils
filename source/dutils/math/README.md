@@ -18,20 +18,13 @@ The dutils math library.
 -  dutils.math.number contains the definition of the Number type, which is currently incomplete and undocumented.
    The Number type currently supports four operations: +, -, *, and /.
 
--  dutils.math.core currently only supports registering and validating a function.
+-  dutils.math.core supports registering, validating, and executing a function.
 
 ### REMOVED
 
 - Any prexisting math library code due to it sucking.
 
 ## Build Instructions
-
-### Building from the repository (<repo_directory> is a placeholder for whatever directory the repository is copied to):
-
-Requirements: dub and git
-
-    git clone https://RubyTheRoobster/dutils.git <repo_directory>
-    cd <repo_directory>
 
 For a static lib build:
 
@@ -40,7 +33,3 @@ For a static lib build:
 For a shared lib build (requires ldc2):
 
     dub build dutils:math --compiler=ldc2 --config=shared --build-mode=allAtOnce
-
-### Building just using dub
-
-    dub build dutils:math
