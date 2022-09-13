@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: August 2, 2021*/
+/**Date: August 30, 2022*/
 /** License:  GPL-3.0**/
 
 ///Definitions for dutils.math.core so as to not clog up the whole file.
@@ -27,9 +27,11 @@ version(Standard)
 {
     public:
 }
+private alias Unshared(T) = T;
+private alias Unshared(T: shared U, U) = U;
 
 ///Base class for all math types.
-class Mtype(T)
+abstract class Mtype(T) if(__traits(hasMember, T, "precision"))
 {
     ///Converts the Mtype to a dstring.
     abstract dstring toDstring() const @property pure @safe;
@@ -52,12 +54,23 @@ class Mtype(T)
     {
         return T.stringof;
     }
+    ///Precision Constructor
+    this(ulong precision) pure @safe nothrow
+    {
+        this.contained = T();
+        this.contained.precision = precision;
+    }
+    ///Normal Constructor
+    this(in T num = T()) pure @safe nothrow
+    {
+        this.contained = num;
+    }
     protected:
         T contained;
 }
 
-
-alias Operator = dstring function(dstring);
+///Define an Operator as used by dutils.math.
+alias Operator = dstring function(dstring[]) @safe;
 
 ///Container for the list of all operators.
 struct Oplist
@@ -70,7 +83,7 @@ struct Oplist
     {
         mixin("return key " ~ op ~ " ops;");
     }
-    auto keys()
+    auto keys() @safe
     {
         return this.ops.keys;
     }
@@ -105,4 +118,5 @@ package shared Funclist funcList;
 
 package import dutils.math.number;
 
-enum dstring[dstring] typel = ["Number"d : "Number"d]; //Too bad that complete modular programming is impossible in D.
+///The list of all types, that has to be kept here and continously updated.
+enum dstring[] typel = ["Number"]; //Too bad that complete modular programming is impossible in D.

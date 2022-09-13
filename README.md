@@ -1,42 +1,33 @@
 # dutils
 A collection of(hopefully)useful modules in the D2 Programming Language.
 
-## Changelog for dutils v0.1.4:
+## Changelog for dutils v0.2.0
 
-### dutils.math
+### NEW
 
-A math library for dutils.  Capable of exectuting dstrings as user defined functions, provided that these
-are functions that map C (the space of all complex numbers) to C.
+#### dutils.math
 
-The only operations supported are +, -, /, *, and ^^, with ^^ being exponentiation.
+-  Created dutils.math.core, dutils.math.def, and dutils.math.number.
 
+-  dutils.math.def contains the definitions for the template mathematical type:  Mtype, and for the wrappers for the function and operator lists.
 
-As of this version, all of the math operations are located in dutils.math.core.
+-  dutils.math.number contains the definition of the Number type, which is currently incomplete and undocumented.
+   The Number type currently supports four operations: +, -, *, and /, and the functions toDstring and fromDstring.
+   The ^^ exponentiation operation will be done later, as it requires logarithms and arguments.
 
-## Add shared configuration
+-  dutils.math.core supports registering, validating, and executing a function.
 
-There is now a shared configuration that outputs a shared library as supposed to a dynamic one.
+### REMOVED
 
-This configuration doesn't build with dmd due to spewing out a million
-linker errors every single time I try.  It does build with ldc2, and I have no idea about GDC.
+- The entire library is getting a revamp, so I removed the existing iteration of the Math Library.
+  Soon the rest of the library will be replaced, but until then, it wil remain.
 
 ## Build Instructions
-
-### Building from the repository (<repo_directory> is a placeholder for whatever directory the repository is copied to):
-
-Requirements: dub and git
-
-    git clone https://RubyTheRoobster/dutils.git <repo_directory>
-    cd <repo_directory>
 
 For a static lib build:
 
     dub build --config=standard --build-mode=allAtOnce
 
-For a shared lib build (requires ldc2):
+For a shared lib build (requires LDC or GDC):
 
     dub build --compiler=ldc2 --config=shared --build-mode=allAtOnce
-
-### Building just using dub
-
-    dub build dutils
