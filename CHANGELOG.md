@@ -8,7 +8,7 @@
 
 -  dutils.math.def contains the definitions for the template mathematical type:  Mtype, and for the wrappers for the function and operator lists.
 
--  dutils.math.number contains the definition of the Number type, which is currently incomplete and undocumented.
+-  dutils.math.number contains the definition of the Number type, which is currently incomplete.
    The Number type currently supports four operations: +, -, *, and /, and the functions toDstring and fromDstring.
    The ^^ exponentiation operation will be done later, as it requires logarithms and arguments.
 
