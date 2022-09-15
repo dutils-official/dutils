@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: September 12, 2022*/
+/**Date: September 14, 2022*/
 /** License:  GPL-3.0**/
 
 ///Core part of the dutils math library.
@@ -1083,6 +1083,11 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
     assert(removeFunction("ree"d, func));
     def = "(x1*x2)*x3"d;
+    assert(registerFunction("ree"d, func, def));
+    i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
+    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    def = "x1*(x2*x3)"d;
+    assert(removeFunction("ree"d, func));
     assert(registerFunction("ree"d, func, def));
     i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
