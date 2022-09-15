@@ -644,6 +644,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     size_t[size_t] begins;
     begins[0] = 0;
     size_t oldi = 0;
+    size_t[size_t][size_t][size_t] endGlue;
     //Parse the function body:
     for(i = 0; i < def.length; i++)
     {
@@ -652,7 +653,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
             case d('('):
                 ++currIndentation;
                 begins[currIndentation] = i;
-                ++exprList[currIndentation].length;
+                exprList[currIndentation].length = exprList[currIndentation].length + 1 ;
                 break;
             case d(')'):
                 --currIndentation;
@@ -710,6 +711,12 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     exprGlue[currIndentation][exprList[currIndentation].length-1][i - begins[currIndentation]] = tempOp ~ "("d;
                 else
                     exprList[currIndentation][$-1] ~= tempOp;
+                debug
+                {
+                    import std.stdio;
+                    writeln("i:", i);
+                    writeln("currIndentation:", currIndentation);
+                }
         }
     }
     //Compute the values of exprList.
@@ -719,81 +726,112 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     debug
     {
         import std.stdio;
+        writeln("Firstprint");
         writeln(exprList[0][0]);
         writeln(exprGlue);
         writeln(keys);
     }
     import std.traits : Unconst;
-    
+    size_t currIndentI = 0;
     for(size_t key = keys[$-1]; key <= keys[$-1]; --key)
     {
+        currIndentI = 0;
         for(i = 0; i < exprList[key].length; i++)
         {
             tempTypes[key].length = i+1;
             for(j = exprList[key][i].length-1; j < exprList[key][i].length; j--)
             {
+                bool c = false;
                 debug
                 {
                     writeln(j);
+                    writeln(tempTypes);
                 }
-                if(exprGlue.keys.length > 0)
+                if(key in exprGlue)
                 {
-                    if(j in exprGlue[key][i]) //Glue stuff together
+                    debug writeln("OH HERRO!");
+                    if(i in exprGlue[key])
                     {
-                        if(exprGlue[key][i][j][0] != d(')') && exprGlue[key][i][j][$-1] == d('('))
-                            currOp = exprGlue[key][i][j][1 .. $].idup;
-                        else if(exprGlue[key][i][j][0] == d(')') && exprGlue[key][i][j][$-1] != d('('))
-                            currOp = exprGlue[key][i][j].idup;
-                        else
-                            currOp = exprGlue[key][i][j][1 .. $-1].idup;
-                        auto keys2 = exprGlue[key][i].keys.sort!"b < a";
-                        import std.algorithm.searching : findSplitBefore;
-                        size_t pos = 0;
-                        for(; keys2[pos] != j; pos++)
+                        debug writeln("OH HERRO! ", j+exprList[key+1][currIndentI].length+2);                        
+                        if(j+exprList[key+1][currIndentI].length+2 in exprGlue[key][i]) //Glue stuff together
                         {
-                        }
-                        if(exprGlue[key][i][j][0] == d(')') && exprGlue[key][i][j][$-1] == d('('))
-                        {
-                            amongDeezNuts: final switch(tempTypes[key+1][pos-1])
+                            c = true;
+                            debug writeln("In glue.");
+                            if(exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][0] != d(')') && exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][$-1] == d('('))
+                                currOp = exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][1 .. $].idup;
+                            else if(exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][0] == d(')') && exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][$-1] != d('('))
+                                currOp = exprGlue[key][i][j+exprList[key+1][currIndentI].length+2].idup;
+                            else
+                                currOp = exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][1 .. $-1].idup;
+                            auto keys2 = exprGlue[key][i].keys.sort!"b < a";
+                            import std.algorithm.searching : findSplitBefore;
+                            size_t pos = 0;
+                            for(; keys2[pos] != j+exprList[key+1][currIndentI].length+2; pos++)
                             {
-                                static foreach(type; typel)
+                            }
+                            if(exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][0] == d(')') && exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][$-1] == d('('))
+                            {
+                                amongDeezNuts: final switch(tempTypes[key+1][pos-1])
                                 {
-                                    case type:
-                                        mixin("amongDeezNuts" ~ type ~ ": final switch(tempTypes[key+1][pos])
-                                        {
-                                            static foreach(type2; typel)
+                                    static foreach(type; typel)
+                                    {
+                                        case type:
+                                            mixin("amongDeezNuts" ~ type ~ ": final switch(tempTypes[key+1][pos])
                                             {
-                                                case type2:
-                                                    tempTypes[key][i] = type;
-                                                    mixin(\"temp\" ~ type ~ \"[key][i] = new \" ~ type ~ \"(temp\" ~ type ~ \"[key+1][pos-1].val);\");
-                                                    mixin(\"temp\" ~ type ~ \"[key][i].applyOp(currOp, temp\" ~ type2 ~ \"[key+1][pos]);\");
-                                                    break amongDeezNuts" ~ type ~ ";
-                                            }
-                                        }");
-                                        break amongDeezNuts;
+                                                static foreach(type2; typel)
+                                                {
+                                                    case type2:
+                                                        tempTypes[key][i] = type;
+                                                        mixin(\"temp\" ~ type ~ \"[key][i] = new \" ~ type ~ \"(temp\" ~ type ~ \"[key+1][pos-1].val);\");
+                                                        mixin(\"temp\" ~ type ~ \"[key][i].applyOp(currOp, temp\" ~ type2 ~ \"[key+1][pos]);\");
+                                                        break amongDeezNuts" ~ type ~ ";
+                                                }
+                                            }");
+                                            break amongDeezNuts;
+                                    }
                                 }
                             }
-                        }
-                        else if(exprGlue[key][i][j][0] == d(')') && exprGlue[key][i][j][$-1] != d('('))
-                        {
-                            //Placeholder
-                        }
-                        else
-                        {
-                            among: final switch(tempTypes[key+1][pos])
+                            else if(exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][0] == d(')') && exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][$-1] != d('('))
                             {
-                                static foreach(type; typel)
+                                pepe: final switch(tempTypes[key+1][pos])
                                 {
-                                    case type:
-                                        tempTypes[key][i] = type;
-                                        mixin("temp" ~ type ~ "[key][i].applyOp(currOp, temp" ~ type ~ "[key+1][pos]);");
-                                        break among;
+                                    static foreach(type; typel)
+                                    {
+                                        case type:
+                                            debug writeln(tempTypes[key][pos]);
+                                            mixin("pepe" ~ type ~ ": final switch(tempTypes[key][i])
+                                            {
+                                                static foreach(type2; typel)
+                                                {
+                                                    case type2:
+                                                        mixin(\"auto temp2 = new \" ~ type ~ \"(temp\" ~ type ~ \"[key+1][pos].val);\");
+                                                        mixin(\"temp2.applyOp(currOp, temp\" ~ type2 ~ \"[key][i]);\");
+                                                        mixin(\"temp\" ~ type ~ \"[key][i] = new \" ~ type ~ \"(temp2.val);\");
+                                                        break pepe" ~ type ~ ";
+                                                }
+                                            }");
+                                            break pepe;
+                                    }
+                                }
+                                tempTypes[key][i] = tempTypes[key+1][currIndentI];
+                            }
+                            else
+                            {
+                                among: final switch(tempTypes[key+1][pos])
+                                {
+                                    static foreach(type; typel)
+                                    {
+                                        case type:
+                                            tempTypes[key][i] = type;
+                                            mixin("temp" ~ type ~ "[key][i].applyOp(currOp, temp" ~ type ~ "[key+1][pos]);");
+                                            break among;
+                                    }
                                 }
                             }
                         }
                     }
                 }
-                else if(exprList[key][i][j].isNumber) //Take care of parameters.
+                if(exprList[key][i][j].isNumber && !c) //Take care of parameters.
                 {
                     debug
                     {
@@ -859,6 +897,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     }
                     else
                     {
+                        debug writeln(key == 0);
                         REEE: final switch(to!size_t(tempNum)-1)
                         {
                             static foreach(tempNumber3; 0 .. args.expand.length)
@@ -876,7 +915,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                                         case tempNumber2:
                                                             mixin(\\\"temp\\\"d ~ type ~ \\\"[key][i] = new \\\"d  ~ type ~
                                                             \\\"(args[tempNumber2].val);\\\"d);
-                                                            mixin(\\\"tempTypes[key][i] = \\\"d ~ type.stringof ~ \\\";\\\"d);
+                                                            mixin(\\\"tempTypes[key][i] =\\\" ~ type.stringof ~ \\\";\\\");
                                                             debug
                                                             {
                                                                 writeln(\\\"NOOP: \\\", tempNumber3);
@@ -1057,5 +1096,10 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     auto r = registerFunction("ree"d, func, def);
     assert(r);
     auto i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
+    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    assert(removeFunction("ree"d, func));
+    def = "(x1*x2)*x3"d;
+    assert(registerFunction("ree"d, func, def));
+    i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
 }
