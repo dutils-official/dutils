@@ -738,10 +738,13 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
         currIndentI = 0;
         for(i = 0; i < exprList[key].length; i++)
         {
+            bool c = false;
             tempTypes[key].length = i+1;
+            isOp = false;
+            isOperand = false;
+            size_t firstOp = 0;
             for(j = exprList[key][i].length-1; j < exprList[key][i].length; j--)
             {
-                bool c = false;
                 debug
                 {
                     writeln(j);
@@ -752,54 +755,36 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     debug writeln("OH HERRO!");
                     if(i in exprGlue[key])
                     {
-                        debug writeln("OH HERRO! ", j+exprList[key+1][currIndentI].length+2);                        
-                        if(j+exprList[key+1][currIndentI].length+2 in exprGlue[key][i]) //Glue stuff together
+                        debug writeln("OH HERRO! ", j+exprList[key+1][currIndentI].length+firstOp+1);
+                        if(j+exprList[key+1][currIndentI].length+firstOp+1 in exprGlue[key][i] && !c) //Glue stuff together
                         {
                             c = true;
-                            debug writeln("In glue.");
-                            if(exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][0] != d(')') && exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][$-1] == d('('))
-                                currOp = exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][1 .. $].idup;
-                            else if(exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][0] == d(')') && exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][$-1] != d('('))
-                                currOp = exprGlue[key][i][j+exprList[key+1][currIndentI].length+2].idup;
-                            else
-                                currOp = exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][1 .. $-1].idup;
+                            debug writeln("INGLUE");
+                            auto k = j+exprList[key+1][currIndentI].length+firstOp+1;
                             auto keys2 = exprGlue[key][i].keys.sort!"b < a";
                             import std.algorithm.searching : findSplitBefore;
                             size_t pos = 0;
-                            for(; keys2[pos] != j+exprList[key+1][currIndentI].length+2; pos++)
+                            for(; keys2[pos] != j+exprList[key+1][currIndentI].length+firstOp+1; pos++)
                             {
                             }
-                            if(exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][0] == d(')') && exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][$-1] == d('('))
+                            if(exprGlue[key][i][k][0] == d(')') && exprGlue[key][i][k][$-1] == d('('))
                             {
-                                amongDeezNuts: final switch(tempTypes[key+1][pos-1])
+                                currOp = exprGlue[key][i][k][1 .. $-1].idup;
+                            }
+                            else if(exprGlue[key][i][k][0] == d(')') && exprGlue[key][i][k][$-1] != d('('))
+                            {
+                                isOp = false;
+                                if(!isOperand)
+                                    goto Num;
+                                c = false;
+                                j -= firstOp+1;
+                                currOp = exprGlue[key][i][k][1 .. $].idup;
+                                Paren3: final switch(tempTypes[key+1][pos])
                                 {
                                     static foreach(type; typel)
                                     {
                                         case type:
-                                            mixin("amongDeezNuts" ~ type ~ ": final switch(tempTypes[key+1][pos])
-                                            {
-                                                static foreach(type2; typel)
-                                                {
-                                                    case type2:
-                                                        tempTypes[key][i] = type;
-                                                        mixin(\"temp\" ~ type ~ \"[key][i] = new \" ~ type ~ \"(temp\" ~ type ~ \"[key+1][pos-1].val);\");
-                                                        mixin(\"temp\" ~ type ~ \"[key][i].applyOp(currOp, temp\" ~ type2 ~ \"[key+1][pos]);\");
-                                                        break amongDeezNuts" ~ type ~ ";
-                                                }
-                                            }");
-                                            break amongDeezNuts;
-                                    }
-                                }
-                            }
-                            else if(exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][0] == d(')') && exprGlue[key][i][j+exprList[key+1][currIndentI].length+2][$-1] != d('('))
-                            {
-                                pepe: final switch(tempTypes[key+1][pos])
-                                {
-                                    static foreach(type; typel)
-                                    {
-                                        case type:
-                                            debug writeln(tempTypes[key][pos]);
-                                            mixin("pepe" ~ type ~ ": final switch(tempTypes[key][i])
+                                            mixin("Paren3" ~ type ~ ": final switch(tempTypes[key][i])
                                             {
                                                 static foreach(type2; typel)
                                                 {
@@ -807,38 +792,30 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                                         mixin(\"auto temp2 = new \" ~ type ~ \"(temp\" ~ type ~ \"[key+1][pos].val);\");
                                                         mixin(\"temp2.applyOp(currOp, temp\" ~ type2 ~ \"[key][i]);\");
                                                         mixin(\"temp\" ~ type ~ \"[key][i] = new \" ~ type ~ \"(temp2.val);\");
-                                                        break pepe" ~ type ~ ";
+                                                        tempTypes[key][i] = type;
+                                                        break Paren3" ~ type ~ ";
                                                 }
                                             }");
-                                            break pepe;
+                                            break Paren3;
                                     }
                                 }
-                                tempTypes[key][i] = tempTypes[key+1][currIndentI];
+                                continue;
                             }
                             else
                             {
-                                among: final switch(tempTypes[key+1][pos])
-                                {
-                                    static foreach(type; typel)
-                                    {
-                                        case type:
-                                            tempTypes[key][i] = type;
-                                            mixin("temp" ~ type ~ "[key][i].applyOp(currOp, temp" ~ type ~ "[key+1][pos]);");
-                                            break among;
-                                    }
-                                }
+                                currOp = exprGlue[key][i][k][0 .. $-1].idup;
                             }
                         }
                     }
                 }
-                if(exprList[key][i][j].isNumber && !c) //Take care of parameters.
+                Num:
+                if(exprList[key][i][j].isNumber) //Take care of parameters.
                 {
                     debug
                     {
                         writeln("HERE");
                     }
                     dstring tempNum = ""d;
-                    isOperand = true;
                     tempNum = ""d;
                     do
                     {
@@ -897,6 +874,8 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     }
                     else
                     {
+                        if(!isOperand)
+                            firstOp = j;
                         debug writeln(key == 0);
                         REEE: final switch(to!size_t(tempNum)-1)
                         {
@@ -930,13 +909,18 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                     break REEE;
                             }
                         }
+                        if(c)
+                            j += firstOp+tempNum.length+1; //Shouldn't end here, by definition.
                     }
                     isOp = false;
                     isOperand = true;
                     currOperand = "x"d ~ tempNum;
+                    debug writeln("TEMPTYPES:", tempTypes);
+                    c = false;
                 }
                 else if(exprList[key][i][j] == d('\\')) //Special Operator
                 {
+                    c = false;
                     //TODO: FIX BUGS WHEN DISCOVERED.
                     dstring tempSpecOperator = ""d;
                     returnType = ""d;
@@ -1048,6 +1032,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     continue;
                 else //Operator
                 {
+                    c = false;
                     debug
                     {
                         writeln("HEREOP");
@@ -1065,7 +1050,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     ++j;
                     tempOp = tempOp.dup.reverse.idup;
                     currOp = tempOp;
-                    isOperand = false;
                 }
             }
         }
