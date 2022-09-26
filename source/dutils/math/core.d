@@ -696,7 +696,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     debug
                     {
                         import std.stdio;
-                        writeln(tempOp);
                     }
                     ++i;
                 }
@@ -755,9 +754,12 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     debug writeln("OH HERRO!");
                     if(i in exprGlue[key])
                     {
-                        debug writeln("OH HERRO! ", j+exprList[key+1][currIndentI].length+firstOp+1);
+                        debug writeln("OH HERRO! 2 ", j+exprList[key+1][currIndentI].length+firstOp+1);
+                        debug writeln("OH HERRO! 3 ", j+firstOp+1);
+                        debug writeln("exprGlue: ", exprGlue[key][currIndentI]);
                         if(j+exprList[key+1][currIndentI].length+firstOp+1 in exprGlue[key][i] && !c) //Glue stuff together
                         {
+                            isOp = false;
                             c = true;
                             debug writeln("INGLUE");
                             auto k = j+exprList[key+1][currIndentI].length+firstOp+1;
@@ -767,43 +769,62 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                             for(; keys2[pos] != j+exprList[key+1][currIndentI].length+firstOp+1; pos++)
                             {
                             }
-                            if(exprGlue[key][i][k][0] == d(')') && exprGlue[key][i][k][$-1] == d('('))
+                            debug writeln("OH HERRO 2!");
+                            if(!isOperand)
+                                goto Num;
+                            c = false;
+                            j -= firstOp+1;
+                            currOp = exprGlue[key][i][k][1 .. $].idup;
+                            Paren2: final switch(tempTypes[key+1][pos])
                             {
-                                currOp = exprGlue[key][i][k][1 .. $-1].idup;
-                            }
-                            else if(exprGlue[key][i][k][0] == d(')') && exprGlue[key][i][k][$-1] != d('('))
-                            {
-                                isOp = false;
-                                if(!isOperand)
-                                    goto Num;
-                                c = false;
-                                j -= firstOp+1;
-                                currOp = exprGlue[key][i][k][1 .. $].idup;
-                                Paren3: final switch(tempTypes[key+1][pos])
+                                static foreach(type; typel)
                                 {
-                                    static foreach(type; typel)
-                                    {
-                                        case type:
-                                            mixin("Paren3" ~ type ~ ": final switch(tempTypes[key][i])
+                                    case type:
+                                        mixin("Paren2" ~ type ~ ": final switch(tempTypes[key][i])
+                                        {
+                                            static foreach(type2; typel)
                                             {
-                                                static foreach(type2; typel)
-                                                {
-                                                    case type2:
-                                                        mixin(\"auto temp2 = new \" ~ type ~ \"(temp\" ~ type ~ \"[key+1][pos].val);\");
-                                                        mixin(\"temp2.applyOp(currOp, temp\" ~ type2 ~ \"[key][i]);\");
-                                                        mixin(\"temp\" ~ type ~ \"[key][i] = new \" ~ type ~ \"(temp2.val);\");
-                                                        tempTypes[key][i] = type;
-                                                        break Paren3" ~ type ~ ";
-                                                }
-                                            }");
-                                            break Paren3;
-                                    }
+                                                case type2:
+                                                    mixin(\"auto temp2 = new \" ~ type ~ \"(temp\" ~ type ~ \"[key+1][pos].val);\");
+                                                    mixin(\"temp2.applyOp(currOp, temp\" ~ type2 ~ \"[key][i]);\");
+                                                    mixin(\"temp\" ~ type ~ \"[key][i] = new \" ~ type ~ \"(temp2.val);\");
+                                                    tempTypes[key][i] = type;
+                                                    break Paren2" ~ type ~ ";
+                                            }
+                                        }");
+                                        break Paren2;
                                 }
-                                continue;
                             }
-                            else
+                            continue;
+                        }
+                        else if(j+firstOp+1 in exprGlue[key][i] && !c)
+                        {
+                            isOp = false;
+                            c = true;
+                            debug writeln("INGLUE");
+                            auto k = j+exprList[key+1][currIndentI].length+firstOp+1;
+                            auto keys2 = exprGlue[key][i].keys.sort!"b < a";
+                            import std.algorithm.searching : findSplitBefore;
+                            size_t pos = 0;
+                            for(; keys2[pos] != j+exprList[key+1][currIndentI].length+firstOp+1; pos++)
                             {
-                                currOp = exprGlue[key][i][k][0 .. $-1].idup;
+                            }
+                            debug writeln("OH HERRO 3! ", k);
+                            if(!isOperand)
+                                goto Num;
+                            currOp = exprGlue[key][i][k][0 .. $-1].idup;
+                            c = false;
+                            isOperand = true;
+                            j -= firstOp+1;
+                            currOp = exprGlue[key][i][k][0 .. $-1].idup;
+                            Paren3: final switch(tempTypes[key+1][pos-1])
+                            {
+                                static foreach(type; typel)
+                                {
+                                    case type:
+                                        mixin("temp" ~ type ~ "[key][i] = new " ~ type ~ "(temp" ~ type ~ "[key+1][pos-1].val);");
+                                        break Paren3;
+                                }
                             }
                         }
                     }
@@ -811,10 +832,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                 Num:
                 if(exprList[key][i][j].isNumber) //Take care of parameters.
                 {
-                    debug
-                    {
-                        writeln("HERE");
-                    }
                     dstring tempNum = ""d;
                     tempNum = ""d;
                     do
@@ -876,7 +893,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     {
                         if(!isOperand)
                             firstOp = j;
-                        debug writeln(key == 0);
                         REEE: final switch(to!size_t(tempNum)-1)
                         {
                             static foreach(tempNumber3; 0 .. args.expand.length)
@@ -909,6 +925,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                     break REEE;
                             }
                         }
+                        writeln(c);
                         if(c)
                             j += firstOp+tempNum.length+1; //Shouldn't end here, by definition.
                     }
