@@ -738,6 +738,8 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
         for(i = 0; i < exprList[key].length; i++)
         {
             bool c = false;
+            bool b = false;
+            bool a = false;
             tempTypes[key].length = i+1;
             isOp = false;
             isOperand = false;
@@ -759,8 +761,8 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                         debug writeln("exprGlue: ", exprGlue[key][currIndentI]);
                         if(j+exprList[key+1][currIndentI].length+firstOp+1 in exprGlue[key][i] && !c) //Glue stuff together
                         {
-                            isOp = false;
                             c = true;
+                            isOp = false;
                             debug writeln("INGLUE");
                             auto k = j+exprList[key+1][currIndentI].length+firstOp+1;
                             auto keys2 = exprGlue[key][i].keys.sort!"b < a";
@@ -802,11 +804,11 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                             isOp = false;
                             c = true;
                             debug writeln("INGLUE");
-                            auto k = j+exprList[key+1][currIndentI].length+firstOp+1;
+                            auto k = j+firstOp+1;
                             auto keys2 = exprGlue[key][i].keys.sort!"b < a";
                             import std.algorithm.searching : findSplitBefore;
                             size_t pos = 0;
-                            for(; keys2[pos] != j+exprList[key+1][currIndentI].length+firstOp+1; pos++)
+                            for(; keys2[pos] != j+firstOp+1; pos++)
                             {
                             }
                             debug writeln("OH HERRO 3! ", k);
@@ -817,12 +819,12 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                             isOperand = true;
                             j -= firstOp+1;
                             currOp = exprGlue[key][i][k][0 .. $-1].idup;
-                            Paren3: final switch(tempTypes[key+1][pos-1])
+                            Paren3: final switch(tempTypes[key+1][pos])
                             {
                                 static foreach(type; typel)
                                 {
                                     case type:
-                                        mixin("temp" ~ type ~ "[key][i] = new " ~ type ~ "(temp" ~ type ~ "[key+1][pos-1].val);");
+                                        mixin("temp" ~ type ~ "[key][i] = new " ~ type ~ "(temp" ~ type ~ "[key+1][pos].val);");
                                         break Paren3;
                                 }
                             }
@@ -1060,6 +1062,8 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     {
                         tempOp ~= exprList[key][i][j];
                         --j;
+                        if(j+1 == 0)
+                            break;
                     }
                     while(exprList[key][i][j] != d('\\') && exprList[key][i][j] != d(' ') &&
                     !exprList[key][i][j].isNumber && exprList[key][i][j] != d(')'));
