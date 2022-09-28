@@ -644,7 +644,9 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     size_t[size_t] begins;
     begins[0] = 0;
     size_t oldi = 0;
+    debug import std.stdio;
     size_t[size_t][size_t][size_t] endGlue;
+    size_t firstOp = 0;
     //Parse the function body:
     for(i = 0; i < def.length; i++)
     {
@@ -693,26 +695,21 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                 do
                 {
                     tempOp ~= def[i];
-                    debug
-                    {
-                        import std.stdio;
-                    }
                     ++i;
                 }
                 while(def[i] != d(' ') && def[i] != d('x') && def[i] != d('\\') && def[i] != d('(')
                 && def[i] != d(')'));
                 --i;
                 if(def[oldi] == d(')') && def[i+1] == d('('))
-                    exprGlue[currIndentation][exprList[currIndentation].length-1][i - begins[currIndentation]] = ")"d ~ tempOp ~ "("d;
+                    exprGlue[currIndentation][exprList[currIndentation].length-1][i - begins[currIndentation+1]] = ")"d ~ tempOp ~ "("d;
                 else if(def[oldi] == d(')') && def[i+1] != d('('))
-                    exprGlue[currIndentation][exprList[currIndentation].length-1][i - begins[currIndentation]] = ")"d ~ tempOp;
+                    exprGlue[currIndentation][exprList[currIndentation].length-1][i - begins[currIndentation+1]] = ")"d ~ tempOp;
                 else if(def[oldi] != d(')') && def[i+1] == d('('))
                     exprGlue[currIndentation][exprList[currIndentation].length-1][i - begins[currIndentation]] = tempOp ~ "("d;
                 else
                     exprList[currIndentation][$-1] ~= tempOp;
                 debug
                 {
-                    import std.stdio;
                     writeln("i:", i);
                     writeln("currIndentation:", currIndentation);
                 }
@@ -743,7 +740,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
             tempTypes[key].length = i+1;
             isOp = false;
             isOperand = false;
-            size_t firstOp = 0;
+            firstOp = 0;
             for(j = exprList[key][i].length-1; j < exprList[key][i].length; j--)
             {
                 size_t pos = 0;
@@ -757,18 +754,17 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     debug writeln("OH HERRO!");
                     if(i in exprGlue[key])
                     {
-                        debug writeln("OH HERRO! 2 ", j+exprList[key+1][currIndentI].length+firstOp+1);
-                        debug writeln("OH HERRO! 3 ", j+firstOp+1);
+                        debug writeln("OH HERRO!", j+exprList[key+1][currIndentI].length+1);
                         debug writeln("exprGlue: ", exprGlue[key][currIndentI]);
-                        if(j+exprList[key+1][currIndentI].length+firstOp+1 in exprGlue[key][i] && !c) //Glue stuff together
+                        if(j+exprList[key+1][currIndentI].length+1 in exprGlue[key][i] && !c) //Glue stuff together
                         {
                             c = true;
                             isOp = false;
                             debug writeln("INGLUE");
-                            auto k = j+exprList[key+1][currIndentI].length+firstOp+1;
+                            auto k = j+exprList[key+1][currIndentI].length+1;
                             auto keys2 = exprGlue[key][i].keys.sort!"b < a";
                             import std.algorithm.searching : findSplitBefore;
-                            for(; keys2[pos] != j+exprList[key+1][currIndentI].length+firstOp+1; pos++)
+                            for(; keys2[pos] != j+exprList[key+1][currIndentI].length+1; pos++)
                             {
                             }
                             debug writeln("OH HERRO 2!");
@@ -799,7 +795,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                             }
                             continue;
                         }
-                        else if(j+firstOp+1 in exprGlue[key][i] && !b)
+                        else if(j+1 in exprGlue[key][i] && !b)
                         {
                             b = true;
                             isOp = false;
@@ -836,6 +832,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                 Num:
                 if(exprList[key][i][j].isNumber) //Take care of parameters.
                 {
+                    firstOp = j;
                     dstring tempNum = ""d;
                     tempNum = ""d;
                     do
@@ -1121,5 +1118,16 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     assert(removeFunction("ree"d, func));
     assert(registerFunction("ree"d, func, def));
     i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
+    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    def = "(x1*x2)*x3*x4"d;
+    assert(removeFunction("ree"d, func));
+    func = "(Number,Number,Number,Number)(Number)"d;
+    assert(registerFunction("ree"d, func, def));
+    Tuple!(Number, Number, Number, Number) b;
+    b[0] = new Number(NumberContainer(BigInt(2), BigInt(0), 0L, 18UL));
+    b[1] = new Number(NumberContainer(BigInt(3), BigInt(0), 0L, 18UL));
+    b[2] = new Number(NumberContainer(BigInt(1), BigInt(0), 0L, 18UL));
+    b[3] = new Number(b[2].val);
+    i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
 }
