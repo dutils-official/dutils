@@ -746,6 +746,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
             size_t firstOp = 0;
             for(j = exprList[key][i].length-1; j < exprList[key][i].length; j--)
             {
+                size_t pos = 0;
                 debug
                 {
                     writeln(j);
@@ -767,7 +768,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                             auto k = j+exprList[key+1][currIndentI].length+firstOp+1;
                             auto keys2 = exprGlue[key][i].keys.sort!"b < a";
                             import std.algorithm.searching : findSplitBefore;
-                            size_t pos = 0;
                             for(; keys2[pos] != j+exprList[key+1][currIndentI].length+firstOp+1; pos++)
                             {
                             }
@@ -799,25 +799,23 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                             }
                             continue;
                         }
-                        else if(j+firstOp+1 in exprGlue[key][i] && !c)
+                        else if(j+firstOp+1 in exprGlue[key][i] && !b)
                         {
+                            b = true;
                             isOp = false;
-                            c = true;
                             debug writeln("INGLUE");
                             auto k = j+firstOp+1;
                             auto keys2 = exprGlue[key][i].keys.sort!"b < a";
                             import std.algorithm.searching : findSplitBefore;
-                            size_t pos = 0;
                             for(; keys2[pos] != j+firstOp+1; pos++)
                             {
                             }
-                            debug writeln("OH HERRO 3! ", k);
                             if(!isOperand)
                                 goto Num;
+                            debug writeln("OH HERRO 3! ", k);
                             currOp = exprGlue[key][i][k][0 .. $-1].idup;
-                            c = false;
                             isOperand = true;
-                            j -= firstOp+1;
+                            j -= firstOp;
                             currOp = exprGlue[key][i][k][0 .. $-1].idup;
                             Paren3: final switch(tempTypes[key+1][pos])
                             {
@@ -825,9 +823,13 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                 {
                                     case type:
                                         mixin("temp" ~ type ~ "[key][i] = new " ~ type ~ "(temp" ~ type ~ "[key+1][pos].val);");
+                                        debug mixin("writeln(temp" ~ type ~ "[key+1][pos].toDstring);");
                                         break Paren3;
                                 }
                             }
+                            b = false;
+                            isOp = true;
+                            goto Num;
                         }
                     }
                 }
@@ -845,6 +847,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     tempNum = tempNum.dup.reverse.idup;
                     if(isOp)
                     {
+                        debug writeln("ISOP");
                         r: final switch(to!size_t(tempNum)-1)
                         {
                             static foreach(tempNumber2; 0 .. args.fieldNames.length)
@@ -890,6 +893,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                     break r;
                             }
                         }
+                        debug writeln("IN OP");
                     }
                     else
                     {
@@ -927,8 +931,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                     break REEE;
                             }
                         }
-                        writeln(c);
-                        if(c)
+                        if(c ^ b)
                             j += firstOp+tempNum.length+1; //Shouldn't end here, by definition.
                     }
                     isOp = false;
@@ -936,10 +939,12 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     currOperand = "x"d ~ tempNum;
                     debug writeln("TEMPTYPES:", tempTypes);
                     c = false;
+                    b = false;
                 }
                 else if(exprList[key][i][j] == d('\\')) //Special Operator
                 {
                     c = false;
+                    b = false;
                     //TODO: FIX BUGS WHEN DISCOVERED.
                     dstring tempSpecOperator = ""d;
                     returnType = ""d;
@@ -1062,8 +1067,11 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     {
                         tempOp ~= exprList[key][i][j];
                         --j;
-                        if(j+1 == 0)
+                        if(j+1+firstOp == 0)
+                        {
+                            j += 1+firstOp;
                             break;
+                        }
                     }
                     while(exprList[key][i][j] != d('\\') && exprList[key][i][j] != d(' ') &&
                     !exprList[key][i][j].isNumber && exprList[key][i][j] != d(')'));
@@ -1071,6 +1079,8 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     ++j;
                     tempOp = tempOp.dup.reverse.idup;
                     currOp = tempOp;
+                    debug writeln("j: ", j);
+                    debug writeln(exprList[key][i][j]);
                 }
             }
         }
