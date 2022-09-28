@@ -1130,4 +1130,9 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     b[3] = new Number(b[2].val);
     i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    def = "x1*x2*(x3*x4)"d;
+    assert(removeFunction("ree"d, func));
+    assert(registerFunction("ree"d, func, def));
+    i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
+    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
 }
