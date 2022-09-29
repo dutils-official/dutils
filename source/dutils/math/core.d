@@ -754,7 +754,8 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     debug writeln("OH HERRO!");
                     if(i in exprGlue[key])
                     {
-                        debug writeln("OH HERRO!", j+exprList[key+1][currIndentI].length+1);
+                        debug writeln("OH HERRO! 2 ", j+exprList[key+1][currIndentI].length+1);
+                        debug writeln("OH HERRO! 3 ", j+firstOp+1);
                         debug writeln("exprGlue: ", exprGlue[key][currIndentI]);
                         if(j+exprList[key+1][currIndentI].length+1 in exprGlue[key][i] && !c) //Glue stuff together
                         {
@@ -795,7 +796,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                             }
                             continue;
                         }
-                        else if(j+1 in exprGlue[key][i] && !b)
+                        else if(j+1+firstOp in exprGlue[key][i] && !b)
                         {
                             b = true;
                             isOp = false;
@@ -928,8 +929,11 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                     break REEE;
                             }
                         }
-                        if(c ^ b)
-                            j += firstOp+tempNum.length+1; //Shouldn't end here, by definition.
+                        debug writeln(b);
+                        debug writeln(j);
+                        if(c || b)
+                            j += tempNum.length+1; //Shouldn't end here, by definition.
+                        debug writeln(j);
                     }
                     isOp = false;
                     isOperand = true;
@@ -1096,6 +1100,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     currOp = ""d;
     return ret;
 }
+
 ///
 @safe unittest
 {
