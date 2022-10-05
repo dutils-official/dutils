@@ -741,6 +741,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
             isOperand = false;
             firstOp = 0;
             bool c = false;
+            bool b = false;
             for(j = exprList[key][i].length-1; j < exprList[key][i].length; j--)
             {
                 size_t pos = 0;
@@ -786,13 +787,32 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                                     debug writeln(\"currOp: \", currOp);
                                                     debug writeln(temp2.val);
                                                     debug writeln(temp" ~ type ~ "[key][i].val);
+                                                    tempTypes[key][i] = type;
                                                     break Switcha" ~ type ~ ";
                                             }
                                         }");
                                         break Switcha;
                                 }
                             }
+                            b = true;
                             continue;
+                        }
+                        if(j+firstOp+1 in exprGlue[key][currIndentI] && !b)
+                        {
+                            b = true;
+                            debug writeln("INGLUE");
+                            isOp = true;
+                            debug writeln("OH HERRO 2!");
+                            currOp = exprGlue[key][currIndentI][j+firstOp+1][0 .. $-1].idup;
+                            Switchb: final switch(tempTypes[key+1][j-firstOp-1])
+                            {
+                                static foreach(type; typel)
+                                {
+                                    case type:
+                                        
+                                        break Switchb;
+                                }
+                            }
                         }
                     }
                 }
