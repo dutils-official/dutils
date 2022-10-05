@@ -723,7 +723,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     {
         import std.stdio;
         writeln("Firstprint");
-        writeln(exprList[0][0]);
+        writeln(exprList);
         writeln(exprGlue);
         writeln(keys);
     }
@@ -734,9 +734,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
         currIndentI = 0;
         for(i = 0; i < exprList[key].length; i++)
         {
-            bool c = false;
-            bool b = false;
-            bool a = false;
             tempTypes[key].length = i+1;
             isOp = false;
             isOperand = false;
@@ -754,80 +751,9 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     debug writeln("OH HERRO!");
                     if(i in exprGlue[key])
                     {
-                        debug writeln("OH HERRO! 2 ", j+exprList[key+1][currIndentI].length+1);
+                        debug writeln("OH HERRO! 1&2 ", j+exprList[key+1][currIndentI].length+1);
                         debug writeln("OH HERRO! 3 ", j+firstOp+1);
                         debug writeln("exprGlue: ", exprGlue[key][currIndentI]);
-                        if(j+exprList[key+1][currIndentI].length+1 in exprGlue[key][i] && !c) //Glue stuff together
-                        {
-                            c = true;
-                            isOp = false;
-                            debug writeln("INGLUE");
-                            auto k = j+exprList[key+1][currIndentI].length+1;
-                            auto keys2 = exprGlue[key][i].keys.sort!"b < a";
-                            import std.algorithm.searching : findSplitBefore;
-                            for(; keys2[pos] != j+exprList[key+1][currIndentI].length+1; pos++)
-                            {
-                            }
-                            debug writeln("OH HERRO 2!");
-                            if(!isOperand)
-                                goto Num;
-                            c = false;
-                            j -= firstOp+1;
-                            currOp = exprGlue[key][i][k][1 .. $].idup;
-                            Paren2: final switch(tempTypes[key+1][pos])
-                            {
-                                static foreach(type; typel)
-                                {
-                                    case type:
-                                        mixin("Paren2" ~ type ~ ": final switch(tempTypes[key][i])
-                                        {
-                                            static foreach(type2; typel)
-                                            {
-                                                case type2:
-                                                    mixin(\"auto temp2 = new \" ~ type ~ \"(temp\" ~ type ~ \"[key+1][pos].val);\");
-                                                    mixin(\"temp2.applyOp(currOp, temp\" ~ type2 ~ \"[key][i]);\");
-                                                    mixin(\"temp\" ~ type ~ \"[key][i] = new \" ~ type ~ \"(temp2.val);\");
-                                                    tempTypes[key][i] = type;
-                                                    break Paren2" ~ type ~ ";
-                                            }
-                                        }");
-                                        break Paren2;
-                                }
-                            }
-                            continue;
-                        }
-                        else if(j+1+firstOp in exprGlue[key][i] && !b)
-                        {
-                            b = true;
-                            isOp = false;
-                            debug writeln("INGLUE");
-                            auto k = j+firstOp+1;
-                            auto keys2 = exprGlue[key][i].keys.sort!"b < a";
-                            import std.algorithm.searching : findSplitBefore;
-                            for(; keys2[pos] != j+firstOp+1; pos++)
-                            {
-                            }
-                            if(!isOperand)
-                                goto Num;
-                            debug writeln("OH HERRO 3! ", k);
-                            currOp = exprGlue[key][i][k][0 .. $-1].idup;
-                            isOperand = true;
-                            j -= firstOp;
-                            currOp = exprGlue[key][i][k][0 .. $-1].idup;
-                            Paren3: final switch(tempTypes[key+1][pos])
-                            {
-                                static foreach(type; typel)
-                                {
-                                    case type:
-                                        mixin("temp" ~ type ~ "[key][i] = new " ~ type ~ "(temp" ~ type ~ "[key+1][pos].val);");
-                                        debug mixin("writeln(temp" ~ type ~ "[key+1][pos].toDstring);");
-                                        break Paren3;
-                                }
-                            }
-                            b = false;
-                            isOp = true;
-                            goto Num;
-                        }
                     }
                 }
                 Num:
@@ -929,23 +855,14 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                     break REEE;
                             }
                         }
-                        debug writeln(b);
-                        debug writeln(j);
-                        if(c || b)
-                            j += tempNum.length+1; //Shouldn't end here, by definition.
-                        debug writeln(j);
                     }
                     isOp = false;
                     isOperand = true;
                     currOperand = "x"d ~ tempNum;
                     debug writeln("TEMPTYPES:", tempTypes);
-                    c = false;
-                    b = false;
                 }
                 else if(exprList[key][i][j] == d('\\')) //Special Operator
                 {
-                    c = false;
-                    b = false;
                     //TODO: FIX BUGS WHEN DISCOVERED.
                     dstring tempSpecOperator = ""d;
                     returnType = ""d;
@@ -1057,7 +974,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     continue;
                 else //Operator
                 {
-                    c = false;
                     debug
                     {
                         writeln("HEREOP");
@@ -1068,11 +984,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     {
                         tempOp ~= exprList[key][i][j];
                         --j;
-                        if(j+1+firstOp == 0)
-                        {
-                            j += 1+firstOp;
-                            break;
-                        }
                     }
                     while(exprList[key][i][j] != d('\\') && exprList[key][i][j] != d(' ') &&
                     !exprList[key][i][j].isNumber && exprList[key][i][j] != d(')'));
@@ -1102,7 +1013,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
 }
 
 ///
-@safe unittest
+@trusted unittest
 {
     Tuple!(Number, Number, Number) a;
     a[0] = new Number(NumberContainer(BigInt(2), BigInt(0), 0L, 18UL));
@@ -1137,6 +1048,16 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
     def = "x1*x2*(x3*x4)"d;
     assert(removeFunction("ree"d, func));
+    assert(registerFunction("ree"d, func, def));
+    i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
+    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    def = "x1*(x2)*x3*(x4)"d;
+    assert(removeFunction("ree"d, func));
+    assert(registerFunction("ree"d, func, def));
+    i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
+    assert(i.toDstring == "6+0i", cast(char[])i.toDstring.dup);
+    assert(removeFunction("ree"d, func));
+    def = "(x1)*(x2)*(x3)*x4"d;
     assert(registerFunction("ree"d, func, def));
     i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
