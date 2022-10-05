@@ -809,7 +809,8 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                 static foreach(type; typel)
                                 {
                                     case type:
-                                        
+                                        tempTypes[key][i] = type;
+                                        mixin("temp" ~ type ~ "[key][i] = new " ~ type ~ "(temp" ~ type ~ "[key+1][j-firstOp-1].val);");
                                         break Switchb;
                                 }
                             }
