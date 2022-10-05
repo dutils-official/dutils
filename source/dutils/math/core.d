@@ -642,6 +642,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     size_t currIndentation = 0;
     exprList[0].length = 1;
     size_t[size_t] begins;
+    size_t[size_t] ends;
     begins[0] = 0;
     size_t oldi = 0;
     debug import std.stdio;
@@ -659,6 +660,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                 break;
             case d(')'):
                 --currIndentation;
+                ends[currIndentation+1] = i;
                 break;
             case d('x'): //Parameters
                 dstring tempNum = ""d;
@@ -703,7 +705,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                 if(def[oldi] == d(')') && def[i+1] == d('('))
                     exprGlue[currIndentation][exprList[currIndentation].length-1][i - begins[currIndentation+1]] = ")"d ~ tempOp ~ "("d;
                 else if(def[oldi] == d(')') && def[i+1] != d('('))
-                    exprGlue[currIndentation][exprList[currIndentation].length-1][i - begins[currIndentation+1]] = ")"d ~ tempOp;
+                    exprGlue[currIndentation][exprList[currIndentation].length-1][i - ends[currIndentation+1]] = ")"d ~ tempOp;
                 else if(def[oldi] != d(')') && def[i+1] == d('('))
                     exprGlue[currIndentation][exprList[currIndentation].length-1][i - begins[currIndentation]] = tempOp ~ "("d;
                 else
@@ -738,6 +740,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
             isOp = false;
             isOperand = false;
             firstOp = 0;
+            bool c = false;
             for(j = exprList[key][i].length-1; j < exprList[key][i].length; j--)
             {
                 size_t pos = 0;
@@ -751,9 +754,46 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     debug writeln("OH HERRO!");
                     if(i in exprGlue[key])
                     {
-                        debug writeln("OH HERRO! 1&2 ", j+exprList[key+1][currIndentI].length+1);
-                        debug writeln("OH HERRO! 3 ", j+firstOp+1);
+                        debug writeln("OH HERRO! 1 ", j);
+                        debug writeln("OH HERRO! 2 ", j+firstOp+1);
                         debug writeln("exprGlue: ", exprGlue[key][currIndentI]);
+                        if(j in exprGlue[key][currIndentI] && !c)
+                        {
+                            c = true;
+                            debug writeln("INGLUE");
+                            if(tempTypes[key][i].length == 0)
+                                goto Num;
+                            debug writeln("OH HERRO 1!");
+                            c = false;
+                            isOp = false;
+                            isOperand = true;
+                            currOp = exprGlue[key][currIndentI][j][1 .. $].idup;
+                            Switcha: final switch(tempTypes[key+1][j-1])
+                            {
+                                static foreach(type; typel)
+                                {
+                                    case type:
+                                        mixin("Switcha" ~ type ~ ": final switch(tempTypes[key][i])
+                                        {
+                                            static foreach(type2; typel)
+                                            {
+                                                case type2:
+                                                    mixin(\"auto temp2 = new \" ~ type ~ \"(temp\" ~ type ~ \"[key+1]
+                                                    [j-1].val);\");
+                                                    mixin(\"temp2.applyOp(currOp, temp\" ~ type2 ~ \"[key][i]);\");
+                                                    mixin(\"temp\" ~ type ~ \"[key][i] = new \" ~ type ~
+                                                    \"(temp2.val);\");
+                                                    debug writeln(\"currOp: \", currOp);
+                                                    debug writeln(temp2.val);
+                                                    debug writeln(temp" ~ type ~ "[key][i].val);
+                                                    break Switcha" ~ type ~ ";
+                                            }
+                                        }");
+                                        break Switcha;
+                                }
+                            }
+                            continue;
+                        }
                     }
                 }
                 Num:
@@ -855,6 +895,10 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                     break REEE;
                             }
                         }
+                        if(c)
+                            j += tempNum.length+1;
+                        debug writeln(j);
+                        c = false;
                     }
                     isOp = false;
                     isOperand = true;
@@ -974,6 +1018,8 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     continue;
                 else //Operator
                 {
+                    if(j == 0)
+                        break;
                     debug
                     {
                         writeln("HEREOP");
