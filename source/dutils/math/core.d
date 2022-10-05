@@ -804,13 +804,17 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                             isOp = true;
                             debug writeln("OH HERRO 2!");
                             currOp = exprGlue[key][currIndentI][j+firstOp+1][0 .. $-1].idup;
-                            Switchb: final switch(tempTypes[key+1][j-firstOp-1])
+                            auto keys2 = exprGlue[key][i].keys.sort!"b < a";
+                            for(; keys2[pos] != j+firstOp+1; pos++)
+                            {
+                            }
+                            Switchb: final switch(tempTypes[key+1][pos])
                             {
                                 static foreach(type; typel)
                                 {
                                     case type:
                                         tempTypes[key][i] = type;
-                                        mixin("temp" ~ type ~ "[key][i] = new " ~ type ~ "(temp" ~ type ~ "[key+1][j-firstOp-1].val);");
+                                        mixin("temp" ~ type ~ "[key][i] = new " ~ type ~ "(temp" ~ type ~ "[key+1][pos].val);");
                                         break Switchb;
                                 }
                             }
