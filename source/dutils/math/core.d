@@ -559,14 +559,49 @@ import std.typecons : Tuple;
  * Returns:
  *     The result of calling the function.
  * TODO:
- *     There is a section of the loop pertaining to
- *     operator execution on paramaters that gets executed
- *     twice.  This has been patched, but an actual solution
- *     is wanted.
+ *     Actually write the function.
  */
 Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) args, ulong precision = 18L) @safe
 {
     Return ret = new Return();
+    // Create temporary stores for each mtype.
+    static foreach(type; typel)
+    {
+        mixin(type ~ "[size_t][size_t]temp" ~ type ~ ";");
+        dstring[size_t][size_t] parens;
+        // Parse the function
+        size_t indentation = 0;
+        size_t[size_t] parenNum = 0;
+        for(size_t i = 0; i < funcList[func].length; ++i)
+        {
+            switch(funcList[func][i])
+            {
+                case d('('):
+                    ++indentation;
+                    break;
+                case d(')'):
+                    ++parenNum[indentation];
+                    --indentation;
+                    break;
+                case d('x'):
+                    do
+                    {
+                        ++i;
+                    }
+                    while(funcList[func][i].isNumber);
+                    --i;
+                    break;
+                case d('\\'):
+                    do
+                    {
+                        ++i;
+                    }
+                    while(funcList[func][i] != d('\\'));
+                    break;
+                default:
+            }
+        }
+    }
     return ret;
 }
 
