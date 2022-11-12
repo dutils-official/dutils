@@ -596,9 +596,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
             case d('x'):
                 do
                 {
-                    debug funcList[func][i].writeln;
-                    debug writeln(indentation);
-                    debug parenNum[indentation].writeln;
                     parens[indentation][parenNum[indentation]] ~= funcList[func][i];
                     ++i;
                     if(i >= funcList[func].length)
