@@ -12,7 +12,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: October 5, 2022*/
+/**Date: November 11, 2022*/
 /** License:  GPL-3.0**/
 
 ///Core part of the dutils math library.
@@ -549,6 +549,7 @@ import std.typecons : Tuple;
 /***********************************************************
  * Executes a function.
  *
+ * TODO:  Actually write the function.
  * Params:
  *     func =
  *         The function to execute.
@@ -558,47 +559,97 @@ import std.typecons : Tuple;
  *         The precision of the returned Mtype.
  * Returns:
  *     The result of calling the function.
- * TODO:
- *     Actually write the function.
  */
 Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) args, ulong precision = 18L) @safe
 {
+    debug import std;
+    import std.uni : isNumber;
+    
     Return ret = new Return();
     // Create temporary stores for each mtype.
     static foreach(type; typel)
     {
         mixin(type ~ "[size_t][size_t]temp" ~ type ~ ";");
-        dstring[size_t][size_t] parens;
-        // Parse the function
-        size_t indentation = 0;
-        size_t[size_t] parenNum = 0;
-        for(size_t i = 0; i < funcList[func].length; ++i)
+    }
+    dstring[size_t][size_t] parens;
+    parens[0] = [0 : ""d];
+    // Parse the function
+    size_t indentation = 0;
+    size_t[size_t] parenNum;
+    parenNum[0] = 0;
+    for(size_t i = 0; i < funcList[func].length; ++i)
+    {
+        switch(funcList[func][i])
         {
-            switch(funcList[func][i])
+            case d('('):
+                ++indentation;
+                if(indentation !in parens)
+                {
+                    parens[indentation] = [0 : ""d];
+                    parenNum[indentation] = 0;
+                }
+                break;
+            case d(')'):
+                ++parenNum[indentation];
+                --indentation;
+                break;
+            case d('x'):
+                do
+                {
+                    debug funcList[func][i].writeln;
+                    debug writeln(indentation);
+                    debug parenNum[indentation].writeln;
+                    parens[indentation][parenNum[indentation]] ~= funcList[func][i];
+                    ++i;
+                    if(i >= funcList[func].length)
+                        break;
+                }
+                while(funcList[func][i].isNumber);
+                --i;
+                break;
+            case d('\\'):
+                do
+                {
+                    parens[indentation][parenNum[indentation]] ~= funcList[func][i];
+                    ++i;
+                }
+                while(funcList[func][i] != d('\\'));
+                break;
+            default:
+                if(funcList[func][i-1] == d(')'))
+                    parens[indentation][parenNum[indentation]] ~= "()"d;
+                parens[indentation][parenNum[indentation]] ~= funcList[func][i];
+        }
+    }
+    //Sort the keys
+    auto keys = parens.keys;
+    import std.algorithm;
+    keys.sort!"b > a";
+    size_t[][] keys2;
+    foreach(key; keys)
+    {
+        ++keys2.length;
+        keys2[$-1] = parens[key].keys.dup;
+    }
+    foreach(ref key; keys2)
+        key.sort!"b > a";
+    foreach_reverse(key; keys)
+    {
+        debug import std.stdio;
+        debug writeln(key);
+        foreach(key2; keys2[key])
+        {
+            for(size_t i = 0; i < parens[key][key2].length; i++)
             {
-                case d('('):
-                    ++indentation;
-                    break;
-                case d(')'):
-                    ++parenNum[indentation];
-                    --indentation;
-                    break;
-                case d('x'):
-                    do
-                    {
-                        ++i;
-                    }
-                    while(funcList[func][i].isNumber);
-                    --i;
-                    break;
-                case d('\\'):
-                    do
-                    {
-                        ++i;
-                    }
-                    while(funcList[func][i] != d('\\'));
-                    break;
-                default:
+                //Get to work executing the function.
+                switch(parens[key][key2][i])
+                {
+                    case d('('):
+                        break;
+                    case d('x'):
+                        break;
+                    default:
+                }
             }
         }
     }
@@ -617,7 +668,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     auto r = registerFunction("ree"d, func, def);
     assert(r);
     auto i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
-    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    //assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
     assert(removeFunction("ree"d, func));
     def = "(x1*x2)*x3"d;
     assert(registerFunction("ree"d, func, def));
