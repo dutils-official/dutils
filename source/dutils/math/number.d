@@ -10,9 +10,9 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
-/** Copyright: 2022, Ruby The Roobster*/
+/** Copyright: 2022-2023, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: August 30, 2022*/
+/**Date: January 16, 2023*/
 /** License:  GPL-3.0**/
 
 ///Module for representing numbers.
@@ -245,8 +245,9 @@ class Number : Mtype!NumberContainer
     bool applyOp(W)(in dstring op, in Mtype!W rhs) pure @safe
     in
     {
+        import std.conv : to;
         assert(is(W == NumberContainer));
-        assert((op == "+"d) ^ (op == "-"d) ^ (op == "*"d) ^ (op == "/"d) ^ (op == "^^"d));
+        assert((op == "+"d) ^ (op == "-"d) ^ (op == "*"d) ^ (op == "/"d) ^ (op == "^^"d), to!string(op));
     }
     do
     {

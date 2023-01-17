@@ -10,9 +10,9 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
-/** Copyright: 2022, Ruby The Roobster*/
+/** Copyright: 2022.2023, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: August 30, 2022*/
+/**Date: January 16, 2023*/
 /** License:  GPL-3.0**/
 
 ///Definitions for dutils.math.core so as to not clog up the whole file.
@@ -38,7 +38,7 @@ abstract class Mtype(T) if(__traits(hasMember, T, "precision"))
     ///Converts a dstring to an Mtype.
     abstract void fromDstring(dstring from) pure @safe;
     ///Apply an operation to an Mtype.
-    abstract bool applyOp(W)(dstring op, Mtype!W rhs) pure  @safe;
+    abstract bool applyOp(W)(dstring op, in Mtype!W rhs) pure  @safe;
     ///Apply an operation from the right side.
     bool applyOpRight(W)(dstring op, ref Mtype!W lhs) pure @safe
     {
