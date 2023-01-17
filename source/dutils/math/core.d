@@ -636,12 +636,11 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     foreach_reverse(key; keys)
     {
         debug import std.stdio;
+        size_t currParen = 0;
         foreach(key2; keys2[key])
         {
-            debug writeln(parens[key][key2]);
             dstring currOp = ""d;
             dstring currType = ""d;
-            size_t currParen = 0;
             bool firstOperand = false;
             for(size_t i = 0; i < parens[key][key2].length; i++)
             {
@@ -651,7 +650,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                     case d('('): //Parentheses, also known as a pain in the ass.
                         static foreach(type; typel)
                         {
-                             mixin("if(temp" ~ type ~ "[key+1][currParen] !is null)
+                            mixin("if(temp" ~ type ~ "[key+1][currParen] !is null)
                             {
                                 currType = type;
                                 if(!firstOperand)
@@ -662,7 +661,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                         }
                         if(firstOperand)
                         {
-                            debug "here".writeln;
                             bool c;
                             static foreach(type; typel)
                             {
@@ -670,15 +668,14 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                     mixin("c = temp" ~ type ~ "[key][key2].applyOp(currOp, temp" ~ type ~ "[key+1][currParen]);");
                             }
                             assert(c);
-                            currOp = ""d;
                         }
                         else
                         {
-                            debug "also here".writeln;
                             firstOperand = true;
                         }
                         ++i;
                         ++currParen;
+                        currOp = ""d;
                         break;
                     case d('x'): //Input
                         ++i;
@@ -695,7 +692,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
 
                         static foreach(arg; 0 .. args.length) // Yes, this little fucker again.  You'll be meeting him alot in this file.
                         {
-                            if(arg == to!size_t(tempIndex)) // Generates YandereDev spaghetti code, there is no workaround for this.
+                            if(arg + 1 == to!size_t(tempIndex)) // Generates YandereDev spaghetti code, there is no workaround for this.
                                 tempType = Unconst!(typeof(args[arg])).stringof;
                         }
                         
@@ -708,7 +705,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                 {
                                     static foreach(arg; 0 .. args.length)
                                     {
-                                        if(arg+1 == to!size_t(tempIndex))
+                                        if(arg + 1 == to!size_t(tempIndex))
                                         {
                                             mixin("temp" ~ type ~ "[key][key2] = new " ~ type ~ "(args[arg].val);");
                                         }
@@ -734,9 +731,9 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                 }
                             }
                             assert(c);
-                            currOp = ""d;
                         }
                         --i;
+                        currOp = ""d;
                         break;
                     case d('\\'): //Operators, such as derivatives, sums, and integrals.
                         break;
@@ -751,14 +748,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                         while(parens[key][key2][i] != d('\\') && parens[key][key2][i] != d('x') && parens[key][key2][i]
                         != d('('));
                         --i;
-                }
-                debug
-                {
-                    static foreach(type; typel)
-                    {
-                        if(type == currType)
-                            debug mixin("temp" ~ type ~ "[key][key2].val.writeln;");
-                    }
                 }
             }
         }
