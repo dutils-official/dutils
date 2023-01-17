@@ -13,7 +13,7 @@ A collection of(hopefully)useful modules in the D2 Programming Language.
 
 -  dutils.math.number contains the definition of the Number type, which is currently incomplete.
    The Number type currently supports four operations: +, -, *, and /, and the functions toDstring and fromDstring.
-   The ^^ exponentiation operation will be done later, as it requires logarithms and arguments.
+   The ^^ exponentiation operation will be done later, as it requires logarithms and arguments. 
 
 -  dutils.math.core supports registering, validating, and executing a function.
 

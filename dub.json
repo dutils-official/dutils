@@ -15,7 +15,7 @@
 			]
 		}
 	],
-	"copyright": "Copyright © 2022, Ruby The Roobster",
+	"copyright": "Copyright © 2022-2023, Ruby The Roobster",
 	"dependencies": {
 		"silly": "~>1.1.1"
 	},

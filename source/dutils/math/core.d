@@ -10,9 +10,9 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
-/** Copyright: 2022, Ruby The Roobster*/
+/** Copyright: 2022-2023, Ruby The Roobster*/
 /**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: November 11, 2022*/
+/**Date: January 16, 2023*/
 /** License:  GPL-3.0**/
 
 ///Core part of the dutils math library.
@@ -565,7 +565,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     debug import std;
     import std.uni : isNumber;
     
-    Return ret = new Return();
     // Create temporary stores for each mtype.
     static foreach(type; typel)
     {
@@ -577,7 +576,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     size_t indentation = 0;
     size_t[size_t] parenNum;
     parenNum[0] = 0;
-    for(size_t i = 0; i < funcList[func].length; ++i)
+    for(size_t i = 0; i < funcList[func].length; ++i) // Organize the function into parentheses groups.
     {
         switch(funcList[func][i])
         {
@@ -592,6 +591,10 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
             case d(')'):
                 ++parenNum[indentation];
                 --indentation;
+                if(i+1 == funcList[func].length)
+                    parens[indentation][parenNum[indentation]] ~= "()"d;
+                else if(funcList[func][i+1] == d(')'))
+                    parens[indentation][parenNum[indentation]] ~= "()"d;
                 break;
             case d('x'):
                 do
@@ -633,24 +636,139 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     foreach_reverse(key; keys)
     {
         debug import std.stdio;
-        debug writeln(key);
         foreach(key2; keys2[key])
         {
+            debug writeln(parens[key][key2]);
+            dstring currOp = ""d;
+            dstring currType = ""d;
+            size_t currParen = 0;
+            bool firstOperand = false;
             for(size_t i = 0; i < parens[key][key2].length; i++)
             {
                 //Get to work executing the function.
                 switch(parens[key][key2][i])
                 {
-                    case d('('):
+                    case d('('): //Parentheses, also known as a pain in the ass.
+                        static foreach(type; typel)
+                        {
+                             mixin("if(temp" ~ type ~ "[key+1][currParen] !is null)
+                            {
+                                currType = type;
+                                if(!firstOperand)
+                                {
+                                    temp" ~ type ~ "[key][key2] = new " ~ type ~ "(temp" ~ type ~ "[key+1][currParen].val);
+                                }
+                            }");
+                        }
+                        if(firstOperand)
+                        {
+                            debug "here".writeln;
+                            bool c;
+                            static foreach(type; typel)
+                            {
+                                if(type == currType)
+                                    mixin("c = temp" ~ type ~ "[key][key2].applyOp(currOp, temp" ~ type ~ "[key+1][currParen]);");
+                            }
+                            assert(c);
+                            currOp = ""d;
+                        }
+                        else
+                        {
+                            debug "also here".writeln;
+                            firstOperand = true;
+                        }
+                        ++i;
+                        ++currParen;
                         break;
-                    case d('x'):
+                    case d('x'): //Input
+                        ++i;
+                        dstring tempIndex = ""d;
+                        dstring tempType = ""d;
+                        do
+                        {
+                            tempIndex ~= parens[key][key2][i];
+                            ++i;
+                            if(i == parens[key][key2].length)
+                                break;
+                        }
+                        while(parens[key][key2][i].isNumber);
+
+                        static foreach(arg; 0 .. args.length) // Yes, this little fucker again.  You'll be meeting him alot in this file.
+                        {
+                            if(arg == to!size_t(tempIndex)) // Generates YandereDev spaghetti code, there is no workaround for this.
+                                tempType = Unconst!(typeof(args[arg])).stringof;
+                        }
+                        
+                        if(!firstOperand)
+                        {
+                            firstOperand = true;
+                            static foreach(type; typel)
+                            {
+                                if(type == tempType)
+                                {
+                                    static foreach(arg; 0 .. args.length)
+                                    {
+                                        if(arg+1 == to!size_t(tempIndex))
+                                        {
+                                            mixin("temp" ~ type ~ "[key][key2] = new " ~ type ~ "(args[arg].val);");
+                                        }
+                                    }
+                                }
+                            }
+                            currType = tempType;
+                        }
+                        else
+                        {
+                            bool c;
+                            static foreach(type; typel) // O(x * y) Compile Time.  D is the king of metaprogramming, but it's quite expensive.
+                            {
+                                if(type == currType)
+                                {
+                                    static foreach(arg; 0 .. args.length)
+                                    {
+                                        if(arg + 1 == to!size_t(tempIndex))
+                                        {
+                                            mixin("c = temp" ~ type ~ "[key][key2].applyOp(currOp, args[arg]);");
+                                        }
+                                    }
+                                }
+                            }
+                            assert(c);
+                            currOp = ""d;
+                        }
+                        --i;
                         break;
-                    default:
+                    case d('\\'): //Operators, such as derivatives, sums, and integrals.
+                        break;
+                    default: //Type specific operators.
+                        do
+                        {
+                            currOp ~= parens[key][key2][i];
+                            ++i;
+                            if(i == parens[key][key2].length)
+                                break;
+                        }
+                        while(parens[key][key2][i] != d('\\') && parens[key][key2][i] != d('x') && parens[key][key2][i]
+                        != d('('));
+                        --i;
+                }
+                debug
+                {
+                    static foreach(type; typel)
+                    {
+                        if(type == currType)
+                            debug mixin("temp" ~ type ~ "[key][key2].val.writeln;");
+                    }
                 }
             }
         }
     }
-    return ret;
+    static foreach(type; typel)
+    {
+        if(type == Return.stringof)
+            mixin("return temp" ~ type ~ "[0][0];");
+    }
+    assert(0, "RubyTheRoobster sucks at programming... Please report this error.");
 }
 
 ///
@@ -665,12 +783,13 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     auto r = registerFunction("ree"d, func, def);
     assert(r);
     auto i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
-    //assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
     assert(removeFunction("ree"d, func));
     def = "(x1*x2)*x3"d;
     assert(registerFunction("ree"d, func, def));
     i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    // All of the above is working
     def = "x1*(x2*x3)"d;
     assert(removeFunction("ree"d, func));
     assert(registerFunction("ree"d, func, def));
@@ -698,7 +817,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
     assert(i.toDstring == "6+0i", cast(char[])i.toDstring.dup);
     assert(removeFunction("ree"d, func));
-    def = "(x1)*(x2)*(x3)*x4"d;
+    def = "((x1)*((x2)*(x3)))*x4"d;
     assert(registerFunction("ree"d, func, def));
     i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
