@@ -449,8 +449,12 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                              ++i;
                     }
                     while((def[i] != d('x') && def[i] != d('\\')) && (def[i] != d('(') && def[i] != d(' ')));
-                    
-                    if(def[i] != d('(')) // Operators
+
+                    bool b = i == def.length;
+                    if (!b)
+                        b = b && def[i] == d('(') && def[i+1] == d('x');
+                        
+                    if (!b) // Operators
                         currOp = tempstr.idup;
                     else //  Oh shit oh fuck a function (THIS CODE DOESN'T WROK AND WILL BE FIXED LATER)
                     {
