@@ -436,7 +436,7 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                     }
                     isOp = false;
                     break;
-                default: //Operators
+                default: // Operators and functions
                     if(isOp)
                         return false;
                     isOp = true;
@@ -449,7 +449,38 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                              ++i;
                     }
                     while((def[i] != d('x') && def[i] != d('\\')) && (def[i] != d('(') && def[i] != d(' ')));
-                    currOp = tempstr.idup;
+                    
+                    /+if(def[i] != d('(')) // Operators+/
+                        currOp = tempstr.idup;
+                    /+else //  Oh shit oh fuck a function (THIS CODE DOESN'T WROK AND WILL BE FIXED LATER)
+                    {
+                        // We need to get the types of its arguments
+                        tempstr = tempstr[0 .. $-1].dup;
+                        dchar[] tempargs = [];
+                        ++i;
+                        do
+                        {
+                            tempargs ~= def[i];
+                            ++i;
+                        }
+                        while(def[i] != d(')'));
+
+                        import std.algorithm;
+                        auto indexes = tempargs.splitter(d(','));
+                        foreach(ref index; indexes)
+                            index = index[1 .. $].dup;
+
+                        size_t[] indices = [];
+                        import std.conv;
+                        foreach(index; indexes)
+                            indices ~= index.to!size_t;
+
+                        dstring[] temptypes;
+                        foreach(indice; indices)
+                            temptypes ~= paramTypeList[indice];
+
+                            
+                    }+/
             }
         }
         while(i < def.length);
