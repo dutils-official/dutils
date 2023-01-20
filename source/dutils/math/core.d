@@ -450,9 +450,9 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                     }
                     while((def[i] != d('x') && def[i] != d('\\')) && (def[i] != d('(') && def[i] != d(' ')));
                     
-                    /+if(def[i] != d('(')) // Operators+/
+                    if(def[i] != d('(')) // Operators
                         currOp = tempstr.idup;
-                    /+else //  Oh shit oh fuck a function (THIS CODE DOESN'T WROK AND WILL BE FIXED LATER)
+                    else //  Oh shit oh fuck a function (THIS CODE DOESN'T WROK AND WILL BE FIXED LATER)
                     {
                         // We need to get the types of its arguments
                         tempstr = tempstr[0 .. $-1].dup;
@@ -480,7 +480,7 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                             temptypes ~= paramTypeList[indice];
 
                             
-                    }+/
+                    }
             }
         }
         while(i < def.length);
