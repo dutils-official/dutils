@@ -442,24 +442,27 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                     isOp = true;
                     isOperand = false;
                     dchar[] tempstr = [];
+                    size_t whyIsThis = 0;
                     do
                     {
                         tempstr ~= def[i];
                         if(((def[i] != d('x')) && (def[i] != d('\\'))) && (def[i] != d('(') && def[i] != d(' ')))
                              ++i;
+                        ++whyIsThis;
                     }
                     while((def[i] != d('x') && def[i] != d('\\')) && (def[i] != d('(') && def[i] != d(' ')));
 
                     bool b = i == def.length;
                     if (!b)
-                        b = b && def[i] == d('(') && def[i+1] == d('x');
+                        b = def[i] == d('(') && def[i+1] == d('x') && whyIsThis > 1;
                         
                     if (!b) // Operators
                         currOp = tempstr.idup;
                     else //  Oh shit oh fuck a function (THIS CODE DOESN'T WROK AND WILL BE FIXED LATER)
                     {
+                        isOp = false;
+                        isOperand = true;
                         // We need to get the types of its arguments
-                        tempstr = tempstr[0 .. $-1].dup;
                         dchar[] tempargs = [];
                         ++i;
                         do
@@ -483,7 +486,26 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                         foreach(indice; indices)
                             temptypes ~= paramTypeList[indice];
 
-                            
+                        foreach(type; temptypes)
+                            tempstr ~= type ~ ","d;
+                        tempstr = tempstr[0 .. $-1].dup;
+                        tempstr ~= ")("d;
+
+                        // Get the return type:
+                        ++i;
+                        dstring retType = ""d;
+                        do
+                        {
+                            retType ~= def[i];
+                            ++i;
+                        }
+                        while(def[i] != d(')'));
+
+                        tempstr ~= retType ~ ")"d;
+
+                        // Check if said function exists
+                        if(tempstr !in funcList)
+                            return false;
                     }
             }
         }
@@ -529,9 +551,9 @@ bool validateFunction(in dstring func, in dstring def) @trusted
     def = "x1*x2"d;
     func = "(Number,Number)(Number)"d;
     assert(registerFunction("f"d, func, def));
-    //Functions within functions were too hard to implement, so we removed them.
-    //def =  "x1* f(x1,x2)(Number)"d;
-    //assert(validateFunction(func, def));
+    // Functions within functions
+    def =  "x1*f(x1,x2)(Number)"d;
+    assert(validateFunction(func, def));
 }
 
 /************************************
