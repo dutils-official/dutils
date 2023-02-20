@@ -47,6 +47,48 @@ else
  
 bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
 {
+    import std.uni;
+    dchar[] def2 = def.dup;
+    for(size_t i = 0; i < def.length; ++i)
+    {
+        if(def[i] != d('x') && !def[i].isNumber && def2[i] != d('\\') && def[i] != d('('))
+        {
+            dstring tempstr = ""d;
+            do
+            {
+                tempstr ~= def[i];
+                if(i != def.length)
+                    ++i;
+                if(i == def.length)
+                    goto c;
+            }
+            while(def[i] != d('x') && !def[i].isNumber && def[i] != d('\\') && def[i] != d('('));
+
+            if(def[i] != d('('))
+                goto c;
+
+            auto oldi = i;
+            do
+            {
+                tempstr ~= def[i];
+                if(i != def.length)
+                    ++i;
+                if(i == def.length)
+                    goto c;
+            }
+            while(def[i] != d(')'));
+            
+            if(i+1 == def.length)
+                goto c;
+
+            if(def[i+1] != d('('))
+                goto c;
+
+            // It truely is a function.
+        }
+        c: // If it is only an operator, and not a function.
+    }
+    
     auto ret = validateFunction(func, def) && name ~ func !in funcList.funcs;
     if(ret)
         funcList.funcs[name ~ func] = def;
@@ -494,9 +536,9 @@ bool validateFunction(in dstring func, in dstring def) @trusted
     def = "x1*x2"d;
     func = "(Number,Number)(Number)"d;
     assert(registerFunction("f"d, func, def));
-    // Functions within functions
+    // Functions within functions.  The substitution is done at registration, it should execute fine.
     //def =  "x1*f(x1,x2)(Number)"d;
-    //assert(validateFunction(func, def));
+    //assert(registerFunction(func, def));
 }
 
 /************************************
