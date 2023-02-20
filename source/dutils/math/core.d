@@ -606,7 +606,7 @@ import std.typecons : Tuple;
 /***********************************************************
  * Executes a function.
  *
- * TODO:  Actually write the function.
+ * TODO:
  * Params:
  *     func =
  *         The function to execute.
