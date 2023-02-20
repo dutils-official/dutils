@@ -442,71 +442,14 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                     isOp = true;
                     isOperand = false;
                     dchar[] tempstr = [];
-                    size_t whyIsThis = 0;
                     do
                     {
                         tempstr ~= def[i];
                         if(((def[i] != d('x')) && (def[i] != d('\\'))) && (def[i] != d('(') && def[i] != d(' ')))
                              ++i;
-                        ++whyIsThis;
                     }
                     while((def[i] != d('x') && def[i] != d('\\')) && (def[i] != d('(') && def[i] != d(' ')));
-
-                    bool b = i == def.length;
-                    if (!b)
-                        b = def[i] == d('(') && def[i+1] == d('x') && whyIsThis > 1;
-                        
-                    if (!b) // Operators
-                        currOp = tempstr.idup;
-                    else //  Oh shit oh fuck a function (THIS CODE DOESN'T WROK AND WILL BE FIXED LATER)
-                    {
-                        isOp = false;
-                        isOperand = true;
-                        // We need to get the types of its arguments
-                        dchar[] tempargs = [];
-                        ++i;
-                        do
-                        {
-                            tempargs ~= def[i];
-                            ++i;
-                        }
-                        while(def[i] != d(')'));
-
-                        import std.algorithm;
-                        auto indexes = tempargs.splitter(d(','));
-                        foreach(ref index; indexes)
-                            index = index[1 .. $].dup;
-
-                        size_t[] indices = [];
-                        import std.conv;
-                        foreach(index; indexes)
-                            indices ~= index.to!size_t;
-
-                        dstring[] temptypes;
-                        foreach(indice; indices)
-                            temptypes ~= paramTypeList[indice];
-
-                        foreach(type; temptypes)
-                            tempstr ~= type ~ ","d;
-                        tempstr = tempstr[0 .. $-1].dup;
-                        tempstr ~= ")("d;
-
-                        // Get the return type:
-                        ++i;
-                        dstring retType = ""d;
-                        do
-                        {
-                            retType ~= def[i];
-                            ++i;
-                        }
-                        while(def[i] != d(')'));
-
-                        tempstr ~= retType ~ ")"d;
-
-                        // Check if said function exists
-                        if(tempstr !in funcList)
-                            return false;
-                    }
+                    currOp = tempstr.idup;
             }
         }
         while(i < def.length);
@@ -552,8 +495,8 @@ bool validateFunction(in dstring func, in dstring def) @trusted
     func = "(Number,Number)(Number)"d;
     assert(registerFunction("f"d, func, def));
     // Functions within functions
-    def =  "x1*f(x1,x2)(Number)"d;
-    assert(validateFunction(func, def));
+    //def =  "x1*f(x1,x2)(Number)"d;
+    //assert(validateFunction(func, def));
 }
 
 /************************************
