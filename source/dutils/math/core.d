@@ -48,12 +48,14 @@ else
 bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
 {
     import std.uni;
-    dchar[] def2 = def.dup;
+    dchar[] tempstr = [];
+    size_t oldi;
     for(size_t i = 0; i < def.length; ++i)
     {
-        if(def[i] != d('x') && !def[i].isNumber && def2[i] != d('\\') && def[i] != d('('))
+        oldi = 0;
+        if(def[i] != d('x') && !def[i].isNumber && def[i] != d('\\') && def[i] != d('('))
         {
-            dstring tempstr = ""d;
+            auto oldi2 = i;
             do
             {
                 tempstr ~= def[i];
@@ -67,7 +69,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             if(def[i] != d('('))
                 goto c;
 
-            auto oldi = i;
+            oldi = i;
             do
             {
                 tempstr ~= def[i];
@@ -84,14 +86,126 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             if(def[i+1] != d('('))
                 goto c;
 
-            // It truely is a function.
+            // It truely is a function (EXTREME PAIN AND SUFFERING):
+
+            // Get the paramaters and return type of the function in func ...
+            dstring[] params;
+            dstring[] returni;
+            size_t k = 0;
+            getParamsReturns(params, func, k); //Get the function return type.
+            dstring returns;
+            ++k; //Make sure to get out of the closing parenthesis.
+            getParamsReturns(returni, func, k); //Get the parameter types.
+            static foreach(type; typel)
+            {
+                mixin(type ~ "[] " ~ type ~ "ParamList;");
+                mixin(type ~ "[] " ~ type ~ "OperandList;");
+            }
+            returns = returni[0];
+            
+            size_t j = 0;
+            dchar[] tempstr2 = [];
+            size_t[] tempxns = [];
+            for(; j < tempstr.length; ++j)
+            {
+                if(tempstr[j] == d(')'))
+                    break;
+                else if(tempstr[j] == d('x')) // Get the parameter types ...
+                {
+                    dstring tempstr3 = ""d;
+                    ++j;
+                    do
+                    {
+                        tempstr3 ~= tempstr[j];
+                        ++j;
+                    }
+                    while(tempstr[j].isNumber);
+
+                    import std.conv : to;
+                    tempstr2 ~= params[to!size_t(tempstr3[1 .. $])];
+                    tempxns ~= to!size_t(tempstr3[1 .. $]);
+                }
+                else
+                    tempstr2 ~= tempstr[j];
+            }
+            tempstr2 ~= tempstr[j .. $].dup; // The return type is known, we just need to copy it.
+            // Verify that tempstr2 is a registered function.
+            if(tempstr2.idup !in funcList)
+                return false;
+
+            tempstr2 = funcList[tempstr2.idup].dup; // Load the function body
+            for(j = 0; j < tempstr2.length; j++) // Substitue the xns
+            {
+                if(tempstr2[j] == d('x')) // Do the substitution
+                {
+                    auto oldj = ++j;
+                    dstring tempstr3 = ""d;
+                    
+                    do
+                    {
+                        tempstr3 ~= tempstr2[j];
+                        ++j;
+                        if(j == tempstr2.length)
+                            break;
+                    }
+                    while(tempstr2[j].isNumber);
+
+                    import std.conv : to;
+                    auto tempstr4 = to!dstring(tempxns[to!size_t(tempstr3)]);
+                    if(tempstr4.length > tempstr3.length)
+                    {
+                        tempstr2.length += tempstr4.length - tempstr3.length;
+                        tempstr2[j + tempstr4.length - tempstr3.length .. $] = tempstr2[j .. $ + tempstr3.length - tempstr4.length].dup; // Shift it up
+                        tempstr2[oldj .. j+1] = tempstr4.dup;
+                    }
+                    else if(tempstr4.length == tempstr3.length)
+                    {
+                        tempstr2[oldj .. j+1] = tempstr4.dup;
+                    }
+                    else // The string has to be shrunk.
+                    {
+                        tempstr2[j + tempstr4.length - tempstr3.length .. $ + tempstr4.length - tempstr3.length] = tempstr2[j .. $].dup;
+                        tempstr2[oldj .. j + 1 + tempstr4.length - tempstr3.length] = tempstr4.dup;
+                        tempstr2.length += tempstr4.length - tempstr3.length;
+                    }
+                }
+            }
+
+            tempstr2 = "("d.dup ~ tempstr2 ~ ")"d.dup; // Encapsulate it ...
+
+            // Substitute it into the body ...
+            if(tempstr2.length > i - oldi2)
+            {
+                tempstr.length += tempstr2.length + oldi2 - i;
+                tempstr[tempstr2.length + oldi2 .. $] = tempstr[i .. $ + i - oldi2 - tempstr2.length].dup;
+                tempstr[oldi2 .. i + tempstr2.length + 1] = tempstr2.dup;
+            }
+            else if(tempstr2.length == i - oldi2)
+            {
+                tempstr[oldi2 .. i+1] = tempstr2.dup;
+            }
+            else
+            {
+                tempstr[tempstr2.length + oldi2 .. $ + tempstr2.length + oldi2 - i] = tempstr[i .. $].dup;
+                tempstr[oldi2 .. tempstr2.length + oldi2 + 1] = tempstr2.dup;
+                tempstr.length += tempstr2.length + oldi2 - i;
+            }
+            continue;
         }
         c: // If it is only an operator, and not a function.
+        debug import std.stdio;
+        debug "here".writeln;
+        debug oldi.writeln;
+        if(oldi != 0)
+            i = oldi;
+        if(i == def.length)
+            break;
+        tempstr ~= def[i];
     }
     
-    auto ret = validateFunction(func, def) && name ~ func !in funcList.funcs;
+    auto ret = validateFunction(func, tempstr.idup) && name ~ func !in funcList.funcs;
     if(ret)
-        funcList.funcs[name ~ func] = def;
+        funcList.funcs[name ~ func] = tempstr.idup;
     return ret;
 }
 
