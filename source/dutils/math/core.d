@@ -69,7 +69,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             if(def[i] != d('('))
                 goto c;
 
-            oldi = i;
+            //oldi = i;
             do
             {
                 tempstr ~= def[i];
@@ -172,8 +172,8 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             }
 
             tempstr2 = "("d.dup ~ tempstr2 ~ ")"d.dup; // Encapsulate it ...
-            debug import std.stdio;
-            debug tempstr.writeln;
+            //debug import std.stdio;
+            //debug tempstr.writeln;
 
             // Substitute it into the body ...
             if(tempstr2.length > i - oldi2)
@@ -195,17 +195,18 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             continue;
         }
         c: // If it is only an operator, and not a function.
-        debug import std.stdio;
-        debug "here".writeln;
-        debug oldi.writeln;
-        if(oldi != 0)
-            i = oldi;
+        //debug import std.stdio;
+        //debug "here".writeln;
+        //debug oldi.writeln;
+        //if(oldi != 0)
+        //    i = oldi;
         if(i == def.length)
             break;
         tempstr ~= def[i];
-        debug tempstr.writeln;
+        //debug tempstr.writeln;
     }
-    debug tempstr.writeln;
+    //debug import std.stdio;
+    //debug tempstr.writeln;
     auto ret = validateFunction(func, tempstr.idup) && name ~ func !in funcList.funcs;
     if(ret)
         funcList.funcs[name ~ func] = tempstr.idup;
@@ -940,8 +941,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     // All of the above is working
     def = "x1*(x2*x3)"d;
     assert(removeFunction("ree"d, func));
-    debug import std.stdio;
-    debug "buggy assert".writeln;
     assert(registerFunction("ree"d, func, def));
     i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
