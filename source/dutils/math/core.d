@@ -172,6 +172,8 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             }
 
             tempstr2 = "("d.dup ~ tempstr2 ~ ")"d.dup; // Encapsulate it ...
+            debug import std.stdio;
+            debug tempstr.writeln;
 
             // Substitute it into the body ...
             if(tempstr2.length > i - oldi2)
@@ -203,7 +205,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
         tempstr ~= def[i];
         debug tempstr.writeln;
     }
-    
+    debug tempstr.writeln;
     auto ret = validateFunction(func, tempstr.idup) && name ~ func !in funcList.funcs;
     if(ret)
         funcList.funcs[name ~ func] = tempstr.idup;
