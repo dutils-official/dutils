@@ -11,7 +11,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022-2023, Ruby The Roobster*/
-/**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
+/**Author: Ruby The Roobster, <michaeleverestc79@gmail.com>*/
 /**Date: January 16, 2023*/
 /** License:  GPL-3.0**/
 
@@ -201,6 +201,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
         if(i == def.length)
             break;
         tempstr ~= def[i];
+        debug tempstr.writeln;
     }
     
     auto ret = validateFunction(func, tempstr.idup) && name ~ func !in funcList.funcs;
@@ -937,6 +938,8 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     // All of the above is working
     def = "x1*(x2*x3)"d;
     assert(removeFunction("ree"d, func));
+    debug import std.stdio;
+    debug "buggy assert".writeln;
     assert(registerFunction("ree"d, func, def));
     i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
