@@ -126,7 +126,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
                     import std.conv : to;
                     debug import std.stdio;
                     debug tempstr3.writeln;
-                    tempstr2 ~= params[to!size_t(tempstr)];
+                    tempstr2 ~= params[to!size_t(tempstr3)];
                     tempxns ~= to!size_t(tempstr3);
                 }
                 else
