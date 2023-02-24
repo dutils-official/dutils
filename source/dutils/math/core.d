@@ -243,6 +243,11 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
     name = "g"d;
     def = "f(x1)(Number)"d;
     assert(registerFunction(name, func, def));
+
+    name = "h"d;
+    func = "(Number,Number)(Number)"d;
+    def = "g(x1)(Number)+f(x2)(Number)"d;
+    assert(registerFunction(name, func, def));
 }
 
 /**************************************************
