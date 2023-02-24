@@ -86,6 +86,16 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             if(def[i+1] != d('('))
                 goto c;
 
+            i += 2;
+            tempstr ~= ")("d;
+            do
+            {
+                tempstr ~= def[i];
+                ++i;
+            }
+            while(def[i] != d(')'));
+            tempstr ~= ")"d;
+
             // It truely is a function (EXTREME PAIN AND SUFFERING):
 
             // Get the paramaters and return type of the function in func ...
@@ -126,12 +136,14 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
                     import std.conv : to;
                     debug import std.stdio;
                     debug tempstr3.writeln;
-                    tempstr2 ~= params[to!size_t(tempstr3)];
+                    tempstr2 ~= params[to!size_t(tempstr3)-1];
                     tempxns ~= to!size_t(tempstr3);
                 }
                 else
                     tempstr2 ~= tempstr[j];
             }
+            debug import std.stdio;
+            debug tempstr.writeln;
             tempstr2 ~= tempstr[j .. $].dup; // The return type is known, we just need to copy it.
             // Verify that tempstr2 is a registered function.
             if(tempstr2.idup !in funcList)
