@@ -205,8 +205,8 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
         tempstr ~= def[i];
         //debug tempstr.writeln;
     }
-    //debug import std.stdio;
-    //debug tempstr.writeln;
+    debug import std.stdio;
+    debug tempstr.writeln;
     auto ret = validateFunction(func, tempstr.idup) && name ~ func !in funcList.funcs;
     if(ret)
         funcList.funcs[name ~ func] = tempstr.idup;
@@ -221,6 +221,11 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
     dstring name = "f"d;
     assert(registerFunction(name, func, def));
     assert(!registerFunction(name, func, def)); //No registering an already-existing function.
+
+    // Issue 12
+    name = "g"d;
+    def = "f(x1)"d;
+    assert(registerFunction(name, func, def));
 }
 
 /**************************************************
