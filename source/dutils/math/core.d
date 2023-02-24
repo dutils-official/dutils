@@ -141,10 +141,13 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
                 }
                 else
                     tempstr2 ~= tempstr[j];
+                if(tempstr[j] == d(')'))
+                    break;
             }
             debug import std.stdio;
             debug tempstr.writeln;
             tempstr2 ~= tempstr[j .. $].dup; // The return type is known, we just need to copy it.
+            debug tempstr2.writeln;
             // Verify that tempstr2 is a registered function.
             if(tempstr2.idup !in funcList)
                 return false;
@@ -188,8 +191,6 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             }
 
             tempstr2 = "("d.dup ~ tempstr2 ~ ")"d.dup; // Encapsulate it ...
-            debug import std.stdio;
-            debug tempstr.writeln;
 
             // Substitute it into the body ...
             if(tempstr2.length > i - oldi2)
