@@ -170,7 +170,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
                     while(tempstr2[j].isNumber);
 
                     import std.conv : to;
-                    auto tempstr4 = to!dstring(tempxns[to!size_t(tempstr3)]);
+                    auto tempstr4 = to!dstring(tempxns[to!size_t(tempstr3) - 1]);
                     if(tempstr4.length > tempstr3.length)
                     {
                         tempstr2.length += tempstr4.length - tempstr3.length;
@@ -179,7 +179,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
                     }
                     else if(tempstr4.length == tempstr3.length)
                     {
-                        tempstr2[oldj .. j+1] = tempstr4.dup;
+                        tempstr2[oldj .. j] = tempstr4.dup;
                     }
                     else // The string has to be shrunk.
                     {
@@ -190,7 +190,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
                 }
             }
 
-            tempstr2 = "("d.dup ~ tempstr2 ~ ")"d.dup; // Encapsulate it ...
+            tempstr2 = "("d.dup ~ tempstr2; // Encapsulate it ...
 
             // Substitute it into the body ...
             if(tempstr2.length > i - oldi2)
@@ -201,12 +201,12 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             }
             else if(tempstr2.length == i - oldi2)
             {
-                tempstr[oldi2 .. i+1] = tempstr2.dup;
+                tempstr[oldi2 .. i] = tempstr2.dup;
             }
             else
             {
                 tempstr[tempstr2.length + oldi2 .. $ + tempstr2.length + oldi2 - i] = tempstr[i .. $].dup;
-                tempstr[oldi2 .. tempstr2.length + oldi2 + 1] = tempstr2.dup;
+                tempstr[oldi2 .. tempstr2.length + oldi2] = tempstr2.dup;
                 tempstr.length += tempstr2.length + oldi2 - i;
             }
             continue;
