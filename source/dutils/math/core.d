@@ -118,12 +118,16 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
                     {
                         tempstr3 ~= tempstr[j];
                         ++j;
+                        if(tempstr.length == j)
+                            break;
                     }
                     while(tempstr[j].isNumber);
 
                     import std.conv : to;
-                    tempstr2 ~= params[to!size_t(tempstr3[1 .. $])];
-                    tempxns ~= to!size_t(tempstr3[1 .. $]);
+                    debug import std.stdio;
+                    debug tempstr3.writeln;
+                    tempstr2 ~= params[to!size_t(tempstr)];
+                    tempxns ~= to!size_t(tempstr3);
                 }
                 else
                     tempstr2 ~= tempstr[j];
@@ -172,8 +176,8 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             }
 
             tempstr2 = "("d.dup ~ tempstr2 ~ ")"d.dup; // Encapsulate it ...
-            //debug import std.stdio;
-            //debug tempstr.writeln;
+            debug import std.stdio;
+            debug tempstr.writeln;
 
             // Substitute it into the body ...
             if(tempstr2.length > i - oldi2)
@@ -224,7 +228,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
 
     // Issue 12
     name = "g"d;
-    def = "f(x1)"d;
+    def = "f(x1)(Number)"d;
     assert(registerFunction(name, func, def));
 }
 
