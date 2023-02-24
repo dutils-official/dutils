@@ -48,13 +48,17 @@ else
 bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
 {
     import std.uni;
+    bool isOp = false;
     dchar[] tempstr = [];
     size_t oldi;
     for(size_t i = 0; i < def.length; ++i)
     {
         oldi = 0;
-        if(def[i] != d('x') && !def[i].isNumber && def[i] != d('\\') && def[i] != d('('))
+        if((def[i] != d('x') && !def[i].isNumber && def[i] != d('\\') && def[i] != d('(')) || isOp && def[i] == d(' '))
         {
+            isOp = false;
+            if(def[i] == d(' '))
+                ++i;
             auto oldi2 = i;
             do
             {
@@ -191,7 +195,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             }
 
             tempstr2 = "("d.dup ~ tempstr2; // Encapsulate it ...
-
+            debug tempstr2.writeln;
             // Substitute it into the body ...
             if(tempstr2.length > i - oldi2)
             {
@@ -217,6 +221,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
         //debug oldi.writeln;
         //if(oldi != 0)
         //    i = oldi;
+        isOp = true;
         if(i == def.length)
             break;
         tempstr ~= def[i];
@@ -246,7 +251,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
 
     name = "h"d;
     func = "(Number,Number)(Number)"d;
-    def = "g(x1)(Number)+f(x2)(Number)"d;
+    def = "g(x1)(Number)+ f(x2)(Number)"d;
     assert(registerFunction(name, func, def));
 }
 
