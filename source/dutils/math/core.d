@@ -11,7 +11,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022-2023, Ruby The Roobster*/
-/**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
+/**Author: Ruby The Roobster, <michaeleverestc79@gmail.com>*/
 /**Date: January 16, 2023*/
 /** License:  GPL-3.0**/
 
@@ -47,9 +47,233 @@ else
  
 bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
 {
-    auto ret = validateFunction(func, def) && name ~ func !in funcList.funcs;
+    import std.uni;
+    bool isOp = false;
+    dchar[] tempstr = [];
+    size_t oldi;
+    size_t oldi2;
+    bool bruh = false;
+    for(size_t i = 0; i < def.length; ++i)
+    {
+        oldi = 0;
+        bruh = false;
+        if((def[i] != d('x') && !def[i].isNumber && def[i] != d('\\') && def[i] != d('(')) || isOp && def[i] == d(' '))
+        {
+            isOp = false;
+            oldi = tempstr.length;
+            oldi2 = i;
+            if(def[i+1] == d(' '))
+            {
+                ++i;
+                oldi +=2;
+                tempstr ~= def[i-1];
+                bruh = true;
+            }
+            do
+            {
+                tempstr ~= def[i];
+                if(i != def.length)
+                    ++i;
+                if(i == def.length)
+                    goto c;
+            }
+            while(def[i] != d('x') && !def[i].isNumber && def[i] != d('\\') && def[i] != d('('));
+
+            if(def[i] != d('('))
+                goto c;
+
+            do
+            {
+                tempstr ~= def[i];
+                if(i != def.length)
+                    ++i;
+                if(i == def.length)
+                    goto c;
+            }
+            while(def[i] != d(')'));
+            
+            if(i+1 == def.length)
+                goto c;
+
+            if(def[i+1] != d('('))
+                goto c;
+
+            i += 2;
+            tempstr ~= ")("d;
+            do
+            {
+                tempstr ~= def[i];
+                ++i;
+            }
+            while(def[i] != d(')'));
+            tempstr ~= ")"d;
+
+            // It truely is a function (EXTREME PAIN AND SUFFERING):
+
+            // Get the paramaters and return type of the function in func ...
+            dstring[] params;
+            dstring[] returni;
+            size_t k = 0;
+            getParamsReturns(params, func, k); //Get the function return type.
+            dstring returns;
+            ++k; //Make sure to get out of the closing parenthesis.
+            getParamsReturns(returni, func, k); //Get the parameter types.
+            static foreach(type; typel)
+            {
+                mixin(type ~ "[] " ~ type ~ "ParamList;");
+                mixin(type ~ "[] " ~ type ~ "OperandList;");
+            }
+            returns = returni[0];
+            
+            size_t j = oldi;
+            dchar[] tempstr2 = [];
+            size_t[] tempxns = [];
+            debug import std.stdio;
+            "here".writeln;
+            debug oldi.writeln;
+            debug
+            {
+                if(oldi > 0)
+                    debug tempstr[oldi].writeln;
+            }
+            for(; j < tempstr.length; ++j)
+            {
+                tempstr.writeln;
+                if(tempstr[j] == d(')'))
+                    break;
+                else if(tempstr[j] == d('x')) // Get the parameter types ...
+                {
+                    dstring tempstr3 = ""d;
+                    ++j;
+                    do
+                    {
+                        tempstr3 ~= tempstr[j];
+                        ++j;
+                        if(tempstr.length == j)
+                            break;
+                    }
+                    while(tempstr[j].isNumber);
+
+                    import std.conv : to;
+                    tempstr2 ~= params[to!size_t(tempstr3)-1];
+                    tempxns ~= to!size_t(tempstr3);
+                }
+                else
+                    tempstr2 ~= tempstr[j];
+                if(tempstr[j] == d(')'))
+                    break;
+            }
+            tempstr2 ~= tempstr[j .. $].dup; // The return type is known, we just need to copy it.
+            // Verify that tempstr2 is a registered function.
+            if(tempstr2.idup !in funcList)
+                return false;
+
+            tempstr2 = funcList[tempstr2.idup].dup; // Load the function body
+            for(j = 0; j < tempstr2.length; j++) // Substitue the xns
+            {
+                if(tempstr2[j] == d('x')) // Do the substitution
+                {
+                    auto oldj = ++j;
+                    dstring tempstr3 = ""d;
+                    
+                    do
+                    {
+                        tempstr3 ~= tempstr2[j];
+                        ++j;
+                        if(j == tempstr2.length)
+                            break;
+                    }
+                    while(tempstr2[j].isNumber);
+
+                    import std.conv : to;
+                    auto tempstr4 = to!dstring(tempxns[to!size_t(tempstr3) - 1]);
+                    if(tempstr4.length > tempstr3.length)
+                    {
+                        tempstr2.length += tempstr4.length - tempstr3.length;
+                        tempstr2[j + tempstr4.length - tempstr3.length .. $] = tempstr2[j .. $ + tempstr3.length - tempstr4.length].dup; // Shift it up
+                        tempstr2[oldj .. j+1] = tempstr4.dup;
+                    }
+                    else if(tempstr4.length == tempstr3.length)
+                    {
+                        tempstr2[oldj .. j] = tempstr4.dup;
+                    }
+                    else // The string has to be shrunk.
+                    {
+                        tempstr2[j + tempstr4.length - tempstr3.length .. $ + tempstr4.length - tempstr3.length] = tempstr2[j .. $].dup;
+                        tempstr2[oldj .. j + 1 + tempstr4.length - tempstr3.length] = tempstr4.dup;
+                        tempstr2.length += tempstr4.length - tempstr3.length;
+                    }
+                }
+            }
+
+            tempstr2 = "("d.dup ~ tempstr2 ~ ")"d; // Encapsulate it ...
+            // Substitute it into the body ...
+            if(tempstr2.length > i - oldi)
+            {
+                tempstr.length += tempstr2.length + oldi - i;
+                tempstr[tempstr2.length + oldi .. $] = tempstr[i .. $ + i - oldi - tempstr2.length].dup;
+                tempstr[oldi .. i + tempstr2.length + 1] = tempstr2.dup;
+            }
+            else if(tempstr2.length == i - oldi)
+            {
+                tempstr[oldi .. i] = tempstr2.dup;
+            }
+            else
+            {
+                debug import std.stdio;
+                debug "bruh".writeln;
+                if(bruh)
+                {
+                debug tempstr[oldi2 + oldi .. $].writeln;
+                debug tempstr[oldi .. oldi+tempstr[oldi2 + oldi .. $].length].writeln;
+                }
+                if(!bruh)
+                    tempstr[tempstr2.length + oldi .. $ + tempstr2.length + oldi - i] = tempstr[i .. $].dup;
+                else // THIS LINE I SWEAR
+                    tempstr[oldi .. oldi+tempstr[oldi2 + oldi .. $].length] = tempstr[oldi2 + oldi .. $].dup;
+                if(bruh)
+                    debug tempstr[oldi .. oldi + oldi2 - tempstr2.length + 1].writeln;
+                debug tempstr2.writeln;
+                if(!bruh)
+                    tempstr[oldi .. tempstr2.length + oldi] = tempstr2.dup;
+                else
+                    tempstr[oldi .. oldi + oldi2 - tempstr2.length + 1] = tempstr2.dup;
+                if(bruh)
+                    tempstr.length += tempstr.length - oldi - oldi2 - tempstr2.length + 1;
+                else
+                    tempstr.length += tempstr2.length + oldi - i - 1;
+            }
+
+            debug import std.stdio;
+            debug tempstr.writeln;
+            continue;
+        }
+        c: // If it is only an operator, and not a function.
+        //debug import std.stdio;
+        //debug "here".writeln;
+        //debug oldi.writeln;
+        //if(oldi != 0)
+        //    i = oldi;
+        isOp = true;
+        if(i == def.length)
+            break;
+        tempstr ~= def[i];
+        //debug tempstr.writeln;
+    }
+    debug import std.stdio;
+    debug tempstr.writeln;
+    
+    for(size_t i = 0; i < tempstr.length; ++i) // Remove any whitespace
+    {
+        if(tempstr[i] == d(' '))
+        {
+            tempstr[i .. $-1] = tempstr[i+1 .. $].dup;
+            --tempstr.length;
+        }
+    }
+    auto ret = validateFunction(func, tempstr.idup) && name ~ func !in funcList.funcs;
     if(ret)
-        funcList.funcs[name ~ func] = def;
+        funcList.funcs[name ~ func] = tempstr.idup;
     return ret;
 }
 
@@ -57,10 +281,22 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
 @safe unittest
 {
     dstring func = "(Number)(Number)"d;
-    dstring def = "x1"d;
+    dstring def = "x1*x1"d;
     dstring name = "f"d;
     assert(registerFunction(name, func, def));
     assert(!registerFunction(name, func, def)); //No registering an already-existing function.
+
+    // Issue 12
+    name = "g"d;
+    def = "f(x1)(Number)"d;
+    assert(registerFunction(name, func, def));
+
+    name = "h"d;
+    func = "(Number,Number)(Number)"d;
+    def = "g(x1)(Number)+ f(x2)(Number)"d;
+    debug import std.stdio;
+    "bug".writeln;
+    assert(registerFunction(name, func, def));
 }
 
 /**************************************************
@@ -449,38 +685,7 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                              ++i;
                     }
                     while((def[i] != d('x') && def[i] != d('\\')) && (def[i] != d('(') && def[i] != d(' ')));
-                    
-                    /+if(def[i] != d('(')) // Operators+/
-                        currOp = tempstr.idup;
-                    /+else //  Oh shit oh fuck a function (THIS CODE DOESN'T WROK AND WILL BE FIXED LATER)
-                    {
-                        // We need to get the types of its arguments
-                        tempstr = tempstr[0 .. $-1].dup;
-                        dchar[] tempargs = [];
-                        ++i;
-                        do
-                        {
-                            tempargs ~= def[i];
-                            ++i;
-                        }
-                        while(def[i] != d(')'));
-
-                        import std.algorithm;
-                        auto indexes = tempargs.splitter(d(','));
-                        foreach(ref index; indexes)
-                            index = index[1 .. $].dup;
-
-                        size_t[] indices = [];
-                        import std.conv;
-                        foreach(index; indexes)
-                            indices ~= index.to!size_t;
-
-                        dstring[] temptypes;
-                        foreach(indice; indices)
-                            temptypes ~= paramTypeList[indice];
-
-                            
-                    }+/
+                    currOp = tempstr.idup;
             }
         }
         while(i < def.length);
@@ -525,9 +730,9 @@ bool validateFunction(in dstring func, in dstring def) @trusted
     def = "x1*x2"d;
     func = "(Number,Number)(Number)"d;
     assert(registerFunction("f"d, func, def));
-    //Functions within functions were too hard to implement, so we removed them.
-    //def =  "x1* f(x1,x2)(Number)"d;
-    //assert(validateFunction(func, def));
+    // Functions within functions.  The substitution is done at registration, it should execute fine.
+    //def =  "x1*f(x1,x2)(Number)"d;
+    //assert(registerFunction(func, def));
 }
 
 /************************************
@@ -580,7 +785,7 @@ import std.typecons : Tuple;
 /***********************************************************
  * Executes a function.
  *
- * TODO:  Actually write the function.
+ * TODO:
  * Params:
  *     func =
  *         The function to execute.
