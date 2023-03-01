@@ -52,20 +52,23 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
     dchar[] tempstr = [];
     size_t oldi;
     size_t oldi2;
+    bool bruh = false;
     for(size_t i = 0; i < def.length; ++i)
     {
         oldi = 0;
+        bruh = false;
         if((def[i] != d('x') && !def[i].isNumber && def[i] != d('\\') && def[i] != d('(')) || isOp && def[i] == d(' '))
         {
             isOp = false;
             oldi = tempstr.length;
+            oldi2 = i;
             if(def[i+1] == d(' '))
             {
                 ++i;
                 oldi +=2;
                 tempstr ~= def[i-1];
+                bruh = true;
             }
-            oldi2 = i;
             do
             {
                 tempstr ~= def[i];
@@ -203,23 +206,42 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
                 }
             }
 
-            tempstr2 = "("d.dup ~ tempstr2; // Encapsulate it ...
+            tempstr2 = "("d.dup ~ tempstr2 ~ ")"d; // Encapsulate it ...
             // Substitute it into the body ...
-            if(tempstr2.length > i - oldi2)
+            if(tempstr2.length > i - oldi)
             {
-                tempstr.length += tempstr2.length + oldi2 - i;
-                tempstr[tempstr2.length + oldi2 .. $] = tempstr[i .. $ + i - oldi2 - tempstr2.length].dup;
-                tempstr[oldi2 .. i + tempstr2.length + 1] = tempstr2.dup;
+                tempstr.length += tempstr2.length + oldi - i;
+                tempstr[tempstr2.length + oldi .. $] = tempstr[i .. $ + i - oldi - tempstr2.length].dup;
+                tempstr[oldi .. i + tempstr2.length + 1] = tempstr2.dup;
             }
-            else if(tempstr2.length == i - oldi2)
+            else if(tempstr2.length == i - oldi)
             {
-                tempstr[oldi2 .. i] = tempstr2.dup;
+                tempstr[oldi .. i] = tempstr2.dup;
             }
             else
             {
-                tempstr[tempstr2.length + oldi2 .. $ + tempstr2.length + oldi2 - i] = tempstr[i .. $].dup;
-                tempstr[oldi2 .. tempstr2.length + oldi2] = tempstr2.dup;
-                tempstr.length += tempstr2.length + oldi2 - i;
+                debug import std.stdio;
+                debug "bruh".writeln;
+                if(bruh)
+                {
+                debug tempstr[oldi2 + oldi .. $].writeln;
+                debug tempstr[oldi .. oldi+tempstr[oldi2 + oldi .. $].length].writeln;
+                }
+                if(!bruh)
+                    tempstr[tempstr2.length + oldi .. $ + tempstr2.length + oldi - i] = tempstr[i .. $].dup;
+                else // THIS LINE I SWEAR
+                    tempstr[oldi .. oldi+tempstr[oldi2 + oldi .. $].length] = tempstr[oldi2 + oldi .. $].dup;
+                if(bruh)
+                    debug tempstr[oldi .. oldi + oldi2 - tempstr2.length + 1].writeln;
+                debug tempstr2.writeln;
+                if(!bruh)
+                    tempstr[oldi .. tempstr2.length + oldi] = tempstr2.dup;
+                else
+                    tempstr[oldi .. oldi + oldi2 - tempstr2.length + 1] = tempstr2.dup;
+                if(bruh)
+                    tempstr.length += tempstr.length - oldi - oldi2 - tempstr2.length + 1;
+                else
+                    tempstr.length += tempstr2.length + oldi - i - 1;
             }
 
             debug import std.stdio;
@@ -240,6 +262,15 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
     }
     debug import std.stdio;
     debug tempstr.writeln;
+    
+    for(size_t i = 0; i < tempstr.length; ++i) // Remove any whitespace
+    {
+        if(tempstr[i] == d(' '))
+        {
+            tempstr[i .. $-1] = tempstr[i+1 .. $].dup;
+            --tempstr.length;
+        }
+    }
     auto ret = validateFunction(func, tempstr.idup) && name ~ func !in funcList.funcs;
     if(ret)
         funcList.funcs[name ~ func] = tempstr.idup;
@@ -250,7 +281,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
 @safe unittest
 {
     dstring func = "(Number)(Number)"d;
-    dstring def = "x1"d;
+    dstring def = "x1*x1"d;
     dstring name = "f"d;
     assert(registerFunction(name, func, def));
     assert(!registerFunction(name, func, def)); //No registering an already-existing function.
