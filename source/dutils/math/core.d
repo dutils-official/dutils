@@ -51,15 +51,21 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
     bool isOp = false;
     dchar[] tempstr = [];
     size_t oldi;
+    size_t oldi2;
     for(size_t i = 0; i < def.length; ++i)
     {
         oldi = 0;
         if((def[i] != d('x') && !def[i].isNumber && def[i] != d('\\') && def[i] != d('(')) || isOp && def[i] == d(' '))
         {
             isOp = false;
-            if(def[i] == d(' '))
+            oldi = tempstr.length;
+            if(def[i+1] == d(' '))
+            {
                 ++i;
-            auto oldi2 = i;
+                oldi +=2;
+                tempstr ~= def[i-1];
+            }
+            oldi2 = i;
             do
             {
                 tempstr ~= def[i];
@@ -73,7 +79,6 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             if(def[i] != d('('))
                 goto c;
 
-            //oldi = i;
             do
             {
                 tempstr ~= def[i];
@@ -117,11 +122,20 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             }
             returns = returni[0];
             
-            size_t j = 0;
+            size_t j = oldi;
             dchar[] tempstr2 = [];
             size_t[] tempxns = [];
+            debug import std.stdio;
+            "here".writeln;
+            debug oldi.writeln;
+            debug
+            {
+                if(oldi > 0)
+                    debug tempstr[oldi].writeln;
+            }
             for(; j < tempstr.length; ++j)
             {
+                tempstr.writeln;
                 if(tempstr[j] == d(')'))
                     break;
                 else if(tempstr[j] == d('x')) // Get the parameter types ...
@@ -138,8 +152,6 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
                     while(tempstr[j].isNumber);
 
                     import std.conv : to;
-                    debug import std.stdio;
-                    debug tempstr3.writeln;
                     tempstr2 ~= params[to!size_t(tempstr3)-1];
                     tempxns ~= to!size_t(tempstr3);
                 }
@@ -148,10 +160,7 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
                 if(tempstr[j] == d(')'))
                     break;
             }
-            debug import std.stdio;
-            debug tempstr.writeln;
             tempstr2 ~= tempstr[j .. $].dup; // The return type is known, we just need to copy it.
-            debug tempstr2.writeln;
             // Verify that tempstr2 is a registered function.
             if(tempstr2.idup !in funcList)
                 return false;
@@ -195,7 +204,6 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
             }
 
             tempstr2 = "("d.dup ~ tempstr2; // Encapsulate it ...
-            debug tempstr2.writeln;
             // Substitute it into the body ...
             if(tempstr2.length > i - oldi2)
             {
@@ -213,6 +221,9 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
                 tempstr[oldi2 .. tempstr2.length + oldi2] = tempstr2.dup;
                 tempstr.length += tempstr2.length + oldi2 - i;
             }
+
+            debug import std.stdio;
+            debug tempstr.writeln;
             continue;
         }
         c: // If it is only an operator, and not a function.
@@ -252,6 +263,8 @@ bool registerFunction(in dstring name, in dstring func, in dstring def) @safe
     name = "h"d;
     func = "(Number,Number)(Number)"d;
     def = "g(x1)(Number)+ f(x2)(Number)"d;
+    debug import std.stdio;
+    "bug".writeln;
     assert(registerFunction(name, func, def));
 }
 
