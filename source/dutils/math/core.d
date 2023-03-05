@@ -11,11 +11,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022-2023, Ruby The Roobster*/
-/**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
+/**Author: Ruby The Roobster, <michaeleverestc79@gmail.com>*/
 /**Date: January 16, 2023*/
-/** License:  GPL-3.0**/
+/** License:  GPL-3.0*/
 
-///Core part of the dutils math library.
+/// Core part of the dutils math library.
 module dutils.math.core;
 
 public import dutils.math.def;
@@ -580,7 +580,7 @@ import std.typecons : Tuple;
 /***********************************************************
  * Executes a function.
  *
- * TODO:  Actually write the function.
+ *
  * Params:
  *     func =
  *         The function to execute.

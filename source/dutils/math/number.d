@@ -11,11 +11,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022-2023, Ruby The Roobster*/
-/**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
+/**Author: Ruby The Roobster, <michaeleverestc79@gmail.com>*/
 /**Date: January 16, 2023*/
-/** License:  GPL-3.0**/
+/** License:  GPL-3.0*/
 
-///Module for representing numbers.
+/// Module for representing numbers.
 module dutils.math.number;
 
 version(DLL)
@@ -28,12 +28,12 @@ version(Standard)
     public:
 }
 
-///Core dutils math library.
+/// Core dutils math library.
 public import dutils.math.core;
-///BigInt is a necessary type for our usage.
+/// BigInt is a necessary type for our usage.
 public import std.bigint;
 
-///Class to represent Numbers in dutils.
+/// Class to represent Numbers in dutils.
 class Number : Mtype!NumberContainer
 {
     /*****************************************************************
@@ -328,7 +328,7 @@ pure @safe unittest {
     assert(f.toDstring == "6.0+.0i"d, cast(char[])f.toDstring.dup);
 }
 
-///Type that is contained by Number.
+/// Type that is contained by Number.
 struct NumberContainer
 {
     /**********************************************************************************
@@ -458,7 +458,7 @@ struct NumberContainer
         }
         else static if(op == "^^")
         {
-            //Oy Vey:  I ain't implementing this until function execution and exponential functions exist.
+            //Oy Vey:  I ain't implementing this until Riemann Sums and oprators exist.
         }
         else static if(op == "*")
         {
