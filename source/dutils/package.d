@@ -11,11 +11,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 /** Copyright: 2022, Ruby The Roobster*/
-/**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
+/**Author: Ruby The Roobster, <michaeleverestc79@gmail.com>*/
 /**Date: January 19, 2022*/
-/** License:  GPL-3.0**/
+/** License:  GPL-3.0*/
 
-///Some Random Modules
+/// Some Random Modules
 module dutils;
 
 version(DLL)

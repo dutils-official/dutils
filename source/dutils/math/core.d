@@ -10,12 +10,12 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
-/** Copyright: 2022, Ruby The Roobster*/
-/**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: September 12, 2022*/
-/** License:  GPL-3.0**/
+/** Copyright: 2022-2023, Ruby The Roobster*/
+/**Author: Ruby The Roobster, <michaeleverestc79@gmail.com>*/
+/**Date: January 16, 2023*/
+/** License:  GPL-3.0*/
 
-///Core part of the dutils math library.
+/// Core part of the dutils math library.
 module dutils.math.core;
 
 public import dutils.math.def;
@@ -436,7 +436,7 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                     }
                     isOp = false;
                     break;
-                default: //Operators
+                default: // Operators and functions
                     if(isOp)
                         return false;
                     isOp = true;
@@ -449,7 +449,38 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                              ++i;
                     }
                     while((def[i] != d('x') && def[i] != d('\\')) && (def[i] != d('(') && def[i] != d(' ')));
-                    currOp = tempstr.idup;
+                    
+                    /+if(def[i] != d('(')) // Operators+/
+                        currOp = tempstr.idup;
+                    /+else //  Oh shit oh fuck a function (THIS CODE DOESN'T WROK AND WILL BE FIXED LATER)
+                    {
+                        // We need to get the types of its arguments
+                        tempstr = tempstr[0 .. $-1].dup;
+                        dchar[] tempargs = [];
+                        ++i;
+                        do
+                        {
+                            tempargs ~= def[i];
+                            ++i;
+                        }
+                        while(def[i] != d(')'));
+
+                        import std.algorithm;
+                        auto indexes = tempargs.splitter(d(','));
+                        foreach(ref index; indexes)
+                            index = index[1 .. $].dup;
+
+                        size_t[] indices = [];
+                        import std.conv;
+                        foreach(index; indexes)
+                            indices ~= index.to!size_t;
+
+                        dstring[] temptypes;
+                        foreach(indice; indices)
+                            temptypes ~= paramTypeList[indice];
+
+                            
+                    }+/
             }
         }
         while(i < def.length);
@@ -549,6 +580,7 @@ import std.typecons : Tuple;
 /***********************************************************
  * Executes a function.
  *
+ *
  * Params:
  *     func =
  *         The function to execute.
@@ -558,495 +590,209 @@ import std.typecons : Tuple;
  *         The precision of the returned Mtype.
  * Returns:
  *     The result of calling the function.
- * TODO:
- *     There is a section of the loop pertaining to
- *     operator execution on paramaters that gets executed
- *     twice.  This has been patched, but an actual solution
- *     is wanted.
  */
 Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) args, ulong precision = 18L) @safe
 {
-    import std.algorithm;
-    import std.conv : to;
-    size_t i = 0;
-    //Generate a temporary store for each type
-    static foreach(type; typel)
-        mixin(type ~ "[size_t][size_t] temp"d ~ type ~ ";"d);
-
+    debug import std;
     import std.uni : isNumber;
-    bool isOp = false;
-    bool isOperand = false;
-    Return ret = new Return();
-    immutable dstring def = funcList[func];
-    dstring returnType = ""d;
-    dstring[] paramTypes = [];
-    //Get the function parameter types and verify them.
-    do
+    
+    // Create temporary stores for each mtype.
+    static foreach(type; typel)
     {
-        ++i;
+        mixin(type ~ "[size_t][size_t]temp" ~ type ~ ";");
     }
-    while(func[i] != d('('));
-    getParamsReturns(paramTypes, func, i);
-    size_t j = 0;
-    for(; i < paramTypes.length; ++i)
+    dstring[size_t][size_t] parens;
+    parens[0] = [0 : ""d];
+    // Parse the function
+    size_t indentation = 0;
+    size_t[size_t] parenNum;
+    parenNum[0] = 0;
+    for(size_t i = 0; i < funcList[func].length; ++i) // Organize the function into parentheses groups.
     {
-        static foreach(ree; 0 .. args.expand.length)
-        {
-            mixin("e" ~ to!string(ree) ~ ": final switch(paramTypes[i])
-            {
-                static foreach(type; typel)
-                {
-                    case type:
-                        import std.traits;
-                        mixin(\"Switch12\" ~ to!string(ree) ~ \": final switch(Unqual!(typeof(args[ree])).stringof)
-                        {
-                            static foreach(type; typel)
-                            {
-                                case type:
-                                    if(type != paramTypes[i])
-                                        throw new Exception(\\\"ERROR: IVALID PARAMETER \\\"
-                                        ~ cast(string)paramTypes[i] ~ \\\", EXPECTED \\\"
-                                        ~ cast(string)type.idup);
-                                    break Switch12\" ~ to!string(ree) ~ \";
-                            }
-                        }\");
-                        break e" ~ to!string(ree) ~ ";
-                }
-            }");
-        }
-    }
-    //Get the return type of the function, so we can dobule check if the template paramter `Return` is correct.
-    ++i;
-    do
-    {
-        returnType ~= func[i];
-        ++i;
-    }
-    while(func[i] != d(')'));
-    auto returnType2 = returnType[1 .. $].idup;
-    returnType = returnType2;
-    Switch10: final switch(returnType)
-    {
-        static foreach(type; typel) //O(n) algortihm, where n is the number of keys in typel.
-        {
-            case type:
-                if(type != Return.stringof)
-                    throw new Exception("ERROR: INVALID RETURN TYPE " ~ Return.stringof ~ ", EXPECTED " ~ cast(string)returnType);
-                break Switch10;
-        }
-    }
-
-    dstring[][size_t] exprList;
-    dstring[size_t][size_t][size_t] exprGlue;
-    dstring[][size_t] tempTypes;
-    size_t currIndentation = 0;
-    exprList[0].length = 1;
-    size_t[size_t] begins;
-    begins[0] = 0;
-    size_t oldi = 0;
-    //Parse the function body:
-    for(i = 0; i < def.length; i++)
-    {
-        switch(def[i])
+        switch(funcList[func][i])
         {
             case d('('):
-                ++currIndentation;
-                begins[currIndentation] = i;
-                ++exprList[currIndentation].length;
+                ++indentation;
+                if(indentation !in parens)
+                {
+                    parens[indentation] = [0 : ""d];
+                    parenNum[indentation] = 0;
+                }
                 break;
             case d(')'):
-                --currIndentation;
+                ++parenNum[indentation];
+                --indentation;
+                if(i+1 == funcList[func].length)
+                    parens[indentation][parenNum[indentation]] ~= "()"d;
+                else if(funcList[func][i+1] == d(')'))
+                    parens[indentation][parenNum[indentation]] ~= "()"d;
                 break;
-            case d('x'): //Parameters
-                dstring tempNum = ""d;
+            case d('x'):
                 do
                 {
-                    tempNum ~= def[i];
+                    parens[indentation][parenNum[indentation]] ~= funcList[func][i];
                     ++i;
-                    if(i == def.length)
+                    if(i >= funcList[func].length)
                         break;
                 }
-                while(def[i].isNumber);
-                exprList[currIndentation][$-1] ~= tempNum;
+                while(funcList[func][i].isNumber);
                 --i;
                 break;
-            case d(' '):
-                exprList[currIndentation][$-1] ~= def[i];
-                break;
-            case d('\\'): //Sepcial Operators
-                dstring tempOperator = "\\"d;
-                ++i;
+            case d('\\'):
                 do
                 {
-                    tempOperator ~= def[i];
+                    parens[indentation][parenNum[indentation]] ~= funcList[func][i];
                     ++i;
-                    if(i == def.length)
-                        break;
                 }
-                while(def[i] != d('\\'));
-                tempOperator ~= "\\"d;
+                while(funcList[func][i] != d('\\'));
                 break;
-            default: //Operators
-                oldi = i - 1;
-                dstring tempOp = ""d;
-                do
-                {
-                    tempOp ~= def[i];
-                    debug
-                    {
-                        import std.stdio;
-                        writeln(tempOp);
-                    }
-                    ++i;
-                }
-                while(def[i] != d(' ') && def[i] != d('x') && def[i] != d('\\') && def[i] != d('(')
-                && def[i] != d(')'));
-                --i;
-                if(def[oldi] == d(')') && def[i+1] == d('('))
-                    exprGlue[currIndentation][exprList[currIndentation].length-1][i - begins[currIndentation]] = ")"d ~ tempOp ~ "("d;
-                else if(def[oldi] == d(')') && def[i+1] != d('('))
-                    exprGlue[currIndentation][exprList[currIndentation].length-1][i - begins[currIndentation]] = ")"d ~ tempOp;
-                else if(def[oldi] != d(')') && def[i+1] == d('('))
-                    exprGlue[currIndentation][exprList[currIndentation].length-1][i - begins[currIndentation]] = tempOp ~ "("d;
-                else
-                    exprList[currIndentation][$-1] ~= tempOp;
+            default:
+                if(funcList[func][i-1] == d(')'))
+                    parens[indentation][parenNum[indentation]] ~= "()"d;
+                parens[indentation][parenNum[indentation]] ~= funcList[func][i];
         }
     }
-    //Compute the values of exprList.
-    dstring currOperand = ""d;
-    dstring currOp = ""d;
-    auto keys = exprList.keys.sort!"b > a";
-    debug
+    //Sort the keys
+    auto keys = parens.keys;
+    import std.algorithm;
+    keys.sort!"b > a";
+    size_t[][] keys2;
+    foreach(key; keys)
     {
-        import std.stdio;
-        writeln(exprList[0][0]);
-        writeln(exprGlue);
-        writeln(keys);
+        ++keys2.length;
+        keys2[$-1] = parens[key].keys.dup;
     }
-    import std.traits : Unconst;
-    
-    for(size_t key = keys[$-1]; key <= keys[$-1]; --key)
+    foreach(ref key; keys2)
+        key.sort!"b > a";
+    foreach_reverse(key; keys)
     {
-        for(i = 0; i < exprList[key].length; i++)
+        debug import std.stdio;
+        size_t currParen = 0;
+        foreach(key2; keys2[key])
         {
-            tempTypes[key].length = i+1;
-            for(j = exprList[key][i].length-1; j < exprList[key][i].length; j--)
+            dstring currOp = ""d;
+            dstring currType = ""d;
+            bool firstOperand = false;
+            for(size_t i = 0; i < parens[key][key2].length; i++)
             {
-                debug
+                //Get to work executing the function.
+                switch(parens[key][key2][i])
                 {
-                    writeln(j);
-                }
-                if(exprGlue.keys.length > 0)
-                {
-                    if(j in exprGlue[key][i]) //Glue stuff together
-                    {
-                        if(exprGlue[key][i][j][0] != d(')') && exprGlue[key][i][j][$-1] == d('('))
-                            currOp = exprGlue[key][i][j][1 .. $].idup;
-                        else if(exprGlue[key][i][j][0] == d(')') && exprGlue[key][i][j][$-1] != d('('))
-                            currOp = exprGlue[key][i][j].idup;
-                        else
-                            currOp = exprGlue[key][i][j][1 .. $-1].idup;
-                        auto keys2 = exprGlue[key][i].keys.sort!"b < a";
-                        import std.algorithm.searching : findSplitBefore;
-                        size_t pos = 0;
-                        for(; keys2[pos] != j; pos++)
+                    case d('('): //Parentheses, also known as a pain in the ass.
+                        static foreach(type; typel)
                         {
-                        }
-                        if(exprGlue[key][i][j][0] == d(')') && exprGlue[key][i][j][$-1] == d('('))
-                        {
-                            amongDeezNuts: final switch(tempTypes[key+1][pos-1])
+                            mixin("if(temp" ~ type ~ "[key+1][currParen] !is null)
                             {
-                                static foreach(type; typel)
+                                currType = type;
+                                if(!firstOperand)
                                 {
-                                    case type:
-                                        mixin("amongDeezNuts" ~ type ~ ": final switch(tempTypes[key+1][pos])
-                                        {
-                                            static foreach(type2; typel)
-                                            {
-                                                case type2:
-                                                    tempTypes[key][i] = type;
-                                                    mixin(\"temp\" ~ type ~ \"[key][i] = new \" ~ type ~ \"(temp\" ~ type ~ \"[key+1][pos-1].val);\");
-                                                    mixin(\"temp\" ~ type ~ \"[key][i].applyOp(currOp, temp\" ~ type2 ~ \"[key+1][pos]);\");
-                                                    break amongDeezNuts" ~ type ~ ";
-                                            }
-                                        }");
-                                        break amongDeezNuts;
+                                    temp" ~ type ~ "[key][key2] = new " ~ type ~ "(temp" ~ type ~ "[key+1][currParen].val);
                                 }
-                            }
+                            }");
                         }
-                        else if(exprGlue[key][i][j][0] == d(')') && exprGlue[key][i][j][$-1] != d('('))
+                        if(firstOperand)
                         {
-                            //Placeholder
+                            bool c;
+                            static foreach(type; typel)
+                            {
+                                if(type == currType)
+                                    mixin("c = temp" ~ type ~ "[key][key2].applyOp(currOp, temp" ~ type ~ "[key+1][currParen]);");
+                            }
+                            assert(c);
                         }
                         else
                         {
-                            among: final switch(tempTypes[key+1][pos])
-                            {
-                                static foreach(type; typel)
-                                {
-                                    case type:
-                                        tempTypes[key][i] = type;
-                                        mixin("temp" ~ type ~ "[key][i].applyOp(currOp, temp" ~ type ~ "[key+1][pos]);");
-                                        break among;
-                                }
-                            }
+                            firstOperand = true;
                         }
-                    }
-                }
-                else if(exprList[key][i][j].isNumber) //Take care of parameters.
-                {
-                    debug
-                    {
-                        writeln("HERE");
-                    }
-                    dstring tempNum = ""d;
-                    isOperand = true;
-                    tempNum = ""d;
-                    do
-                    {
-                        tempNum ~= exprList[key][i][j];
-                        --j;
-                    }
-                    while(exprList[key][i][j].isNumber);
-                    tempNum = tempNum.dup.reverse.idup;
-                    if(isOp)
-                    {
-                        r: final switch(to!size_t(tempNum)-1)
+                        ++i;
+                        ++currParen;
+                        currOp = ""d;
+                        break;
+                    case d('x'): //Input
+                        ++i;
+                        dstring tempIndex = ""d;
+                        dstring tempType = ""d;
+                        do
                         {
-                            static foreach(tempNumber2; 0 .. args.fieldNames.length)
+                            tempIndex ~= parens[key][key2][i];
+                            ++i;
+                            if(i == parens[key][key2].length)
+                                break;
+                        }
+                        while(parens[key][key2][i].isNumber);
+
+                        static foreach(arg; 0 .. args.length) // Yes, this little fucker again.  You'll be meeting him alot in this file.
+                        {
+                            if(arg + 1 == to!size_t(tempIndex)) // Generates YandereDev spaghetti code, there is no workaround for this.
+                                tempType = Unconst!(typeof(args[arg])).stringof;
+                        }
+                        
+                        if(!firstOperand)
+                        {
+                            firstOperand = true;
+                            static foreach(type; typel)
                             {
-                                case tempNumber2:
-                                    bool ins = false;
-                                    static foreach(ree; 0 .. args.fieldNames.length)
+                                if(type == tempType)
+                                {
+                                    static foreach(arg; 0 .. args.length)
                                     {
-                                        mixin("Switch14"d ~ to!dstring(ree) ~ to!dstring(tempNumber2) ~ ": final switch(to!dstring(Unconst!(typeof(args[tempNumber2])).stringof))
+                                        if(arg + 1 == to!size_t(tempIndex))
                                         {
-                                            static foreach(type; typel)
-                                            {
-                                                case type:
-                                                    mixin(\"Switch15\"d ~ type ~ to!dstring(ree) ~ to!dstring(tempNumber2) ~\": final switch(tempTypes[key][i])
-                                                    {
-                                                        static foreach(type2; typel)
-                                                        {
-                                                            case type2:
-                                                                if(!ins)
-                                                                {
-                                                                    ins = true;
-                                                                    mixin(type ~ \\\"[size_t][size_t] temp2;\\\"d);
-                                                                    mixin(\\\"foreach(bruh1; temp\\\" ~ type ~ \\\".keys)
-                                                                    {
-                                                                        foreach(bruh2; temp\\\" ~ type ~ \\\"[bruh1].keys)
-                                                                        {
-                                                                            temp2[bruh1][bruh2] = new \\\" ~ type ~ \\\"(temp\\\" ~ type ~ \\\"[bruh1][bruh2].val);
-                                                                        }
-                                                                    }\\\");
-                                                                    mixin(\\\"temp2[key][i] = new \\\" ~ type ~ \\\"(args[tempNumber2].val);\\\");
-                                                                    mixin(\\\"temp2[key][i].applyOp(currOp, temp\\\"d
-                                                                    ~ type2 ~ \\\"[key][i]);\\\"d);
-                                                                    mixin(\\\"temp\\\" ~ type ~ \\\" = temp2;\\\");
-                                                                    tempTypes[key][i] = Unconst!(typeof(args[tempNumber2])).stringof;
-                                                                    break Switch15\"d ~ type ~ to!dstring(ree) ~ to!dstring(tempNumber2) ~ \";
-                                                                }
-                                                        }
-                                                    }\"d);
-                                                    break Switch14"d ~ to!dstring(ree) ~ to!dstring(tempNumber2) ~  ";
-                                            }
-                                        }"d);
+                                            mixin("temp" ~ type ~ "[key][key2] = new " ~ type ~ "(args[arg].val);");
+                                        }
                                     }
-                                    break r;
+                                }
                             }
+                            currType = tempType;
                         }
-                    }
-                    else
-                    {
-                        REEE: final switch(to!size_t(tempNum)-1)
+                        else
                         {
-                            static foreach(tempNumber3; 0 .. args.expand.length)
+                            bool c;
+                            static foreach(type; typel) // O(x * y) Compile Time.  D is the king of metaprogramming, but it's quite expensive.
                             {
-                                case tempNumber3:
-                                    mixin("Switche" ~ to!string(tempNumber3) ~ ": final switch(Unconst!(typeof(args[tempNumber3])).stringof)
+                                if(type == currType)
+                                {
+                                    static foreach(arg; 0 .. args.length)
                                     {
-                                        static foreach(type; typel)
+                                        if(arg + 1 == to!size_t(tempIndex))
                                         {
-                                            case type:
-                                                mixin(\"z\" ~ to!string(tempNumber3) ~ \": final switch(to!size_t(tempNum)-1)
-                                                {
-                                                    static foreach(tempNumber2;  0 .. args.expand.length) //REEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-                                                    {
-                                                        case tempNumber2:
-                                                            mixin(\\\"temp\\\"d ~ type ~ \\\"[key][i] = new \\\"d  ~ type ~
-                                                            \\\"(args[tempNumber2].val);\\\"d);
-                                                            mixin(\\\"tempTypes[key][i] = \\\"d ~ type.stringof ~ \\\";\\\"d);
-                                                            debug
-                                                            {
-                                                                writeln(\\\"NOOP: \\\", tempNumber3);
-                                                                mixin(\\\"writeln(temp\\\" ~ type ~ \\\"[key][i].toDstring);\\\");
-                                                            }
-                                                            break z\" ~ to!string(tempNumber3) ~ \";
-                                                    }
-                                                }\");
-                                                break Switche" ~ to!string(tempNumber3) ~ ";
+                                            mixin("c = temp" ~ type ~ "[key][key2].applyOp(currOp, args[arg]);");
                                         }
-                                    }");
-                                    break REEE;
+                                    }
+                                }
                             }
+                            assert(c);
                         }
-                    }
-                    isOp = false;
-                    isOperand = true;
-                    currOperand = "x"d ~ tempNum;
-                }
-                else if(exprList[key][i][j] == d('\\')) //Special Operator
-                {
-                    //TODO: FIX BUGS WHEN DISCOVERED.
-                    dstring tempSpecOperator = ""d;
-                    returnType = ""d;
-                    size_t ind = 0;
-                    bool ifParam = false;
-                    bool ifParam2 = false;
-                    do
-                    {
-                        tempSpecOperator ~= exprList[key][i][j];
-                        --j;
-                    }
-                    while(exprList[key][i][j] != d('\\'));
-                    tempSpecOperator = tempSpecOperator.dup.reverse.idup;
-                    //Get the return type of the operator
-                    do
-                    {
-                        returnType ~= tempSpecOperator[ind];
-                        ++ind;
-                    }
-                    while(tempSpecOperator[ind] != d('('));
-                    //Replace the `xnnn`s with the value of args[nnn].toDstring.
-                    size_t k = 0;
-                    size_t oldk = 0;
-                    dstring num = ""d;
-                    bool firstx = false;
-                    do
-                    {
+                        --i;
+                        currOp = ""d;
+                        break;
+                    case d('\\'): //Operators, such as derivatives, sums, and integrals.
+                        break;
+                    default: //Type specific operators.
                         do
                         {
-                            if(!firstx)
-                                ind = k;
-                            ++k;
+                            currOp ~= parens[key][key2][i];
+                            ++i;
+                            if(i == parens[key][key2].length)
+                                break;
                         }
-                        while(tempSpecOperator[k] != d('x'));
-                        firstx = true;
-                        oldk = k;
-                        ++k;
-                        do
-                        {
-                            num ~= tempSpecOperator[k];
-                            ++k;
-                        }
-                        while(tempSpecOperator[k].isNumber);
-                    }
-                    while(k < tempSpecOperator.length);
-                    dstring tem = ""d;
-                    BRUH: final switch(to!size_t(num)) //I SWEAR THAT I AM SICK AND TIRED OF THIS FUCKING SHIT
-                    {
-                        static foreach(Number2; 0 .. args.expand.length)
-                        {
-                            case Number2:
-                                tem = args[Number2].toDstring;
-                                break BRUH;
-                        }
-                    }
-                    dchar[] tempSpecOperator2 = tempSpecOperator.dup;
-                    tempSpecOperator2.length += tem.length - num.length -1;
-                    tempSpecOperator2[0 .. oldk+1] = tempSpecOperator[0 .. oldk+1].dup;
-                    tempSpecOperator2[oldk+1 .. oldk+tem.length-num.length] = tem.dup;
-                    tempSpecOperator2[oldk+tem.length-num.length .. $] = tempSpecOperator[oldk+1 .. $].dup;
-                    tempSpecOperator = tempSpecOperator2.idup;
-                    //Execute the special operator
-                    auto tem2 = tempSpecOperator[0 .. ind].idup;
-                    tem = tempSpecOperator[ind .. $].idup;
-                    dstring[] paramatar = [];
-                    k = 0;
-                    getParamsReturns(paramatar, tem, k);
-                    tem = opList[tem2](paramatar);
-                    if(isOp)
-                    {
-                        amogus: final switch(cast(string)returnType)
-                        {
-                            static foreach(type; typel)
-                            {
-                                    mixin("amogus" ~ type ~ ": final switch(cast(string)tempTypes[key][i])
-                                    {
-                                        static foreach(type2; typel)
-                                        {
-                                            case type2:
-                                                mixin(\"temp\"d ~ type ~ \"[key][i] = new \"d  ~ type ~
-                                                \"(precision);\"d);
-                                                mixin(\"temp\" ~ type ~ \"[key][i].fromDstring(tem);\");
-                                                mixin(\"temp\" ~ type ~ \"[key][i].applyOp(currOp, temp\" ~ type2 ~ \"[key][i]);\");
-                                                break amogus" ~ type ~ ";
-                                        }
-                                    }"d);
-                                    break amogus;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        amogusrofl: final switch(cast(string)returnType)
-                        {
-                            static foreach(type; typel)
-                            {
-                                case type:
-                                    mixin("temp" ~ type ~ "[key][i] = new " ~ type ~ "(precision);");
-                                    mixin("temp" ~ type ~ "[key][i].fromDstring(tem);");
-                                    break amogusrofl;
-                            }
-                        }
-                    }
-                    tempTypes[key][i] = returnType;
-                    isOp = false;
-                    isOperand = true;
-                }
-                else if(exprList[key][i][j] == d(' ')) //The obligatory whitespace after an operator and before a function.
-                    continue;
-                else //Operator
-                {
-                    debug
-                    {
-                        writeln("HEREOP");
-                    }
-                    dstring tempOp = ""d;
-                    isOp = true;
-                    do
-                    {
-                        tempOp ~= exprList[key][i][j];
-                        --j;
-                    }
-                    while(exprList[key][i][j] != d('\\') && exprList[key][i][j] != d(' ') &&
-                    !exprList[key][i][j].isNumber && exprList[key][i][j] != d(')'));
-                    debug writeln(tempOp, tempOp.length);
-                    ++j;
-                    tempOp = tempOp.dup.reverse.idup;
-                    currOp = tempOp;
-                    isOperand = false;
+                        while(parens[key][key2][i] != d('\\') && parens[key][key2][i] != d('x') && parens[key][key2][i]
+                        != d('('));
+                        --i;
                 }
             }
         }
     }
-    BRUHBRUH: final switch(Return.stringof)
+    static foreach(type; typel)
     {
-        static foreach(type; typel)
-        {
-            case type:
-                mixin("ret = new " ~ type ~ "(temp" ~ type ~ "[0][0].val);");
-                break BRUHBRUH;
-        }
+        if(type == Return.stringof)
+            mixin("return temp" ~ type ~ "[0][0];");
     }
-    isOp = false;
-    isOperand = true;
-    currOp = ""d;
-    return ret;
+    assert(0, "RubyTheRoobster sucks at programming... Please report this error.");
 }
+
 ///
-@safe unittest
+@trusted unittest
 {
     Tuple!(Number, Number, Number) a;
     a[0] = new Number(NumberContainer(BigInt(2), BigInt(0), 0L, 18UL));
@@ -1057,5 +803,42 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     auto r = registerFunction("ree"d, func, def);
     assert(r);
     auto i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
+    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    assert(removeFunction("ree"d, func));
+    def = "(x1*x2)*x3"d;
+    assert(registerFunction("ree"d, func, def));
+    i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
+    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    // All of the above is working
+    def = "x1*(x2*x3)"d;
+    assert(removeFunction("ree"d, func));
+    assert(registerFunction("ree"d, func, def));
+    i = executeFunction!(Number, Number, Number, Number)("ree(Number,Number,Number)(Number)"d, a);
+    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    def = "(x1*x2)*x3*x4"d;
+    assert(removeFunction("ree"d, func));
+    func = "(Number,Number,Number,Number)(Number)"d;
+    assert(registerFunction("ree"d, func, def));
+    Tuple!(Number, Number, Number, Number) b;
+    b[0] = new Number(NumberContainer(BigInt(2), BigInt(0), 0L, 18UL));
+    b[1] = new Number(NumberContainer(BigInt(3), BigInt(0), 0L, 18UL));
+    b[2] = new Number(NumberContainer(BigInt(1), BigInt(0), 0L, 18UL));
+    b[3] = new Number(b[2].val);
+    i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
+    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    def = "x1*x2*(x3*x4)"d;
+    assert(removeFunction("ree"d, func));
+    assert(registerFunction("ree"d, func, def));
+    i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
+    assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    def = "x1*(x2)*x3*(x4)"d;
+    assert(removeFunction("ree"d, func));
+    assert(registerFunction("ree"d, func, def));
+    i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
+    assert(i.toDstring == "6+0i", cast(char[])i.toDstring.dup);
+    assert(removeFunction("ree"d, func));
+    def = "((x1)*((x2)*(x3)))*x4"d;
+    assert(registerFunction("ree"d, func, def));
+    i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
 }

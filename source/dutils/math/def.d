@@ -10,12 +10,12 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
-/** Copyright: 2022, Ruby The Roobster*/
-/**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: August 30, 2022*/
-/** License:  GPL-3.0**/
+/** Copyright: 2022.2023, Ruby The Roobster*/
+/**Author: Ruby The Roobster, <michaeleverestc79@gmail.com>*/
+/**Date: January 16, 2023*/
+/** License:  GPL-3.0*/
 
-///Definitions for dutils.math.core so as to not clog up the whole file.
+/// Definitions for dutils.math.core so as to not clog up the whole file.
 module dutils.math.def;
 
 version(DLL)
@@ -30,37 +30,37 @@ version(Standard)
 private alias Unshared(T) = T;
 private alias Unshared(T: shared U, U) = U;
 
-///Base class for all math types.
+/// Base class for all math types.
 abstract class Mtype(T) if(__traits(hasMember, T, "precision"))
 {
-    ///Converts the Mtype to a dstring.
+    /// Converts the Mtype to a dstring.
     abstract dstring toDstring() const @property pure @safe;
-    ///Converts a dstring to an Mtype.
+    /// Converts a dstring to an Mtype.
     abstract void fromDstring(dstring from) pure @safe;
-    ///Apply an operation to an Mtype.
-    abstract bool applyOp(W)(dstring op, Mtype!W rhs) pure  @safe;
-    ///Apply an operation from the right side.
+    /// Apply an operation to an Mtype.
+    abstract bool applyOp(W)(dstring op, in Mtype!W rhs) pure  @safe;
+    /// Apply an operation from the right side.
     bool applyOpRight(W)(dstring op, ref Mtype!W lhs) pure @safe
     {
         return lhs.applyOp(op, this);
     }
-    ///Return the value stored in the Mtype.
+    /// Return the value stored in the Mtype.
     final T val() const pure @safe @property
     {
         return this.contained;
     }
-    ///Return the type if the value contained.
+    /// Return the type if the value contained.
     final auto containedType() const pure @safe @property
     {
         return T.stringof;
     }
-    ///Precision Constructor
+    /// Precision Constructor
     this(ulong precision) pure @safe nothrow
     {
         this.contained = T();
         this.contained.precision = precision;
     }
-    ///Normal Constructor
+    /// Normal Constructor
     this(in T num = T()) pure @safe nothrow
     {
         this.contained = num;
@@ -69,10 +69,10 @@ abstract class Mtype(T) if(__traits(hasMember, T, "precision"))
         T contained;
 }
 
-///Define an Operator as used by dutils.math.
+/// Define an Operator as used by dutils.math.
 alias Operator = dstring function(dstring[]) @safe;
 
-///Container for the list of all operators.
+/// Container for the list of all operators.
 struct Oplist
 {
     Operator opIndex(dstring op) pure @safe const shared
@@ -91,10 +91,10 @@ struct Oplist
         Operator[dstring] ops;
 }
 
-///The list of all operators.
+/// The list of all operators.
 package shared Oplist opList;
 
-///Container for the function list.
+/// Container for the function list.
 struct Funclist
 {
     dstring opIndex(dstring func) pure const @safe shared
@@ -113,10 +113,10 @@ struct Funclist
         dstring[dstring] funcs;
 }
 
-///The list of all functions.
+/// The list of all functions.
 package shared Funclist funcList;
 
-package import dutils.math.number;
+package import dutils.math.number; // I'm not sure why this line is here, but I'm too scared to touch it.
 
-///The list of all types, that has to be kept here and continously updated.
-enum dstring[] typel = ["Number"]; //Too bad that complete modular programming is impossible in D.
+/// The list of all types, that has to be kept here and continously updated.
+enum dstring[] typel = ["Number"]; // Too bad that complete modular programming is impossible in D.
