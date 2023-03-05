@@ -1,11 +1,16 @@
 # dutils:math
+
 The dutils math library.
 
 ## Function Syntax
 
-- No whitespace, unless right after an operatorand before a function, in which case a single space (no more, no less) is required.
-
 - The func parameter of ExecuteFunction shall be in the following form: name(parameter_types)(return_type)
+
+- All operands shall be referred to by the function as xn, where n is the nth argument
+
+- There is to be no whitespace
+
+- Parentheses are allowed, but must be closed.  There is no order of operations.
 
 ## Changelog for dutils v0.2.0
 

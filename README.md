@@ -1,5 +1,16 @@
 # dutils
-A collection of(hopefully)useful modules in the D2 Programming Language.
+
+A collection of (hopefully) useful modules in the D2 Programming Language.
+
+This project was initially supposed to be a collection of whatever modules I decided to write for the 
+D programming language (not unlike Arsd), but it had no direction, and I soon forgot about it.
+After months, I picked it up again, and decided to make a game engine, mainly centered around
+a robust mathematics library (which is currently all there is) and modularity: i.e. one can
+write an additional module extending upon the base framework with little to no effort.
+
+## What's With the Version Number?
+
+I am an absolute monkey, and started it at v0.1.0 for some reason.  Don't ask, I do not remember at this point.
 
 ## Changelog for dutils v0.2.0
 
