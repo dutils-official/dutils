@@ -27,6 +27,9 @@ else
     public:
 }
 
+
+/// TODO:  ADD RIEMANN SUMS WHEN DONE
+
 /// Definitions file
 import dutils.math.def;
 
@@ -43,7 +46,9 @@ private import dutils.math.number;
  *         specified n (the index), and whatever
  *         parameters from the function the operator was
  *         called in; The intial value of the index (real);
- *         and the maximum value of the index (real).
+ *         and the maximum value of the index (real);
+ *         the types of the paramaters of the function,
+ *         separated by commas.
  *
  * Returns:
  *     A dstring containing the serialized value of the
@@ -62,14 +67,47 @@ dstring summation(dstring[] op) @safe
 
     temp = ""d;
     dstring[] paramTypes;
+    dstring[] paramValues;
         
     static foreach(type; typel) // OH NO NOT THIS AGAIN
     {
         mixin(type ~ "[] temp" ~ type ~ ";");
     }
-    for(size_t i = 0; i < op[0].length; ++ i) // Get the values of the function paramaters + the index.
+    size_t i;
+    for(i = 0; op[0][i] != d('('); ++i) // Get function name.
+        temp ~= op[0][i];
+
+    dstring temp2;
+    ++i;
+    for(; op[0][i] != d(')'); ++i) // Get the values of the function parameters.
     {
+        if(op[0][i] == d(','))
+        {
+            paramValues ~= temp2;
+            temp2 = ""d;
+            continue;
+        }
+        temp2 ~= op[0][i];
     }
+
+    paramValues ~= temp2; // This last is cut off in the loop.
+    temp2 = ""d;
+    i += 2;
+    temp ~= "("d;
+    for(; op[0][i] != d(')'); ++i) // Get the function parameter types
+    {
+        if(op[0][i] == d(','))
+        {
+            paramTypes ~= temp2;
+            temp ~= d(',');
+            temp2 = ""d;
+            continue;
+        }
+        temp2 ~= op[0][i];
+    }
+    paramTypes ~= temp2;
+    temp ~= ")"d;
+    temp2 = ""d;
     return ret;
 }
 
