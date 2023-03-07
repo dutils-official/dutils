@@ -10,12 +10,12 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
-/** Copyright: 2022, Ruby The Roobster*/
-/**Author: Ruby The Roobster, <rubytheroobster@yandex.com>*/
-/**Date: January 19, 2022*/
-/** License:  GPL-3.0**/
+/** Copyright: 2022-2023, Ruby The Roobster*/
+/**Author: Ruby The Roobster, <michaeleverestc79@gmail.com>*/
+/**Date: March 6, 2023*/
+/** License:  GPL-3.0*/
 
-///Dutils math library
+/// Dutils math library
 module dutils.math;
 
 version(DLL)
@@ -31,3 +31,5 @@ else
 import dutils.math.core;
 /// Implements complex numbers for the math library.
 import dutils.math.number;
+/// Implements Summations
+import dutils.math.summation;
