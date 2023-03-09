@@ -306,9 +306,9 @@ class Number : Mtype!NumberContainer
      * Returns:
      *     Whether the result of the comparison is true.
      */
-     bool opCmp(string op)(in Number rhs) pure const @safe nothrow @nogc
+     bool opCmp(string op)(in Number rhs) pure const @safe nothrow
      {
-        mixin("return (this.contained " ~ op ~ "rhs.contained);");
+        return this.contained.opCmp!op(rhs.contained);
      }
 }
 
@@ -544,10 +544,10 @@ struct NumberContainer
      * Returns:
      *     The value of the comparison
      */
-    bool opCmp(string op)(in NumberContainer rhs) pure @safe nothrow const @nogc
+    bool opCmp(string op)(in NumberContainer rhs) pure @safe nothrow const
     {
-        auto a = this.val;
-        auto b = rhs.val;
+        BigInt a = this.val;
+        BigInt b = rhs.val;
 
         if(rhs.pow10 < 0)
         {

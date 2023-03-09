@@ -111,9 +111,21 @@ dstring summation(dstring[] op) @safe
     }
     paramTypes ~= temp2;
     temp ~= ")"d;
-    temp2 = ""d;
     typeIndices[temp2] ~= j;
     ++j;
+    temp2 = ""d;
+
+    Number upperindex = new Number(NumberContainer(BigInt(0), BigInt(0), 0, precision));
+    for( i = 0; i < op[2].length; ++i) // Get the upper index
+        temp2 ~= op[2][i];
+    upperindex.fromDstring(temp2);
+    auto one = new Number(NumberContainer(BigInt(1), BigInt(0), 0, precision));
+
+    // Set up for repeated function calls
+
+    for(; index.opCmp!"<="(upperindex); index.applyOp("+", one)) // Main loop
+    {
+    }
     return ret;
 }
 
