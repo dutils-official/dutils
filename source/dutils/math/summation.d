@@ -68,6 +68,7 @@ dstring summation(dstring[] op) @safe
     temp = ""d;
     dstring[] paramTypes;
     dstring[] paramValues;
+    size_t[][dstring] typeIndices;
         
     static foreach(type; typel) // OH NO NOT THIS AGAIN
     {
@@ -94,6 +95,7 @@ dstring summation(dstring[] op) @safe
     temp2 = ""d;
     i += 2;
     temp ~= "("d;
+    size_t j = 0;
     for(; op[0][i] != d(')'); ++i) // Get the function parameter types
     {
         if(op[0][i] == d(','))
@@ -101,6 +103,8 @@ dstring summation(dstring[] op) @safe
             paramTypes ~= temp2;
             temp ~= d(',');
             temp2 = ""d;
+            typeIndices[temp2] ~= j;
+            ++j;
             continue;
         }
         temp2 ~= op[0][i];
@@ -108,6 +112,8 @@ dstring summation(dstring[] op) @safe
     paramTypes ~= temp2;
     temp ~= ")"d;
     temp2 = ""d;
+    typeIndices[temp2] ~= j;
+    ++j;
     return ret;
 }
 
