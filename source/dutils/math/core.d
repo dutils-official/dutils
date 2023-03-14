@@ -220,6 +220,9 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                     }
                     endf:
                     debug "here".writeln;
+                    debug currOp.writeln;
+                    debug currOperand.writeln;
+                    debug val.writeln;
                     if(isOp)
                     {
                         static foreach(type; typel)
@@ -243,8 +246,13 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                         isOp = false;
                         currOperand = val;
                     }
+                    debug def[i].writeln;
                     if(def[i] != d('%'))
+                    {
                         return false;
+                    }
+                    ++i;
+                    debug "test".writeln;
                     break;
                case d('('):
                     ++indentation;
