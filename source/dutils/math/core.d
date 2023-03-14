@@ -98,7 +98,7 @@ bool removeFunction(in dstring name, in dstring func) @safe
 
 /*******************************************
  * Validates a function.
- *
+ * TODO: CONSTANTS
  * Params:
  *     func =
  *        The function name and parameters.
@@ -169,9 +169,84 @@ bool validateFunction(in dstring func, in dstring def) @trusted
         do
         {
             tempNum = ""d;
+            dstring val3;
+            dstring val;
             switch(def[i])
             {
-                case d('('):
+                case d('%'): //Constants
+                    debug import std.stdio;
+                    if(isOperand && !isOp)
+                        return false;
+                    isOperand = true;
+                    ++i;
+                    do
+                    {
+                        val ~= def[i];
+                        ++i;
+                        if(i == def.length)
+                            return false;
+                    }
+                    while(def[i] != d('('));
+                    ++i;
+                    do
+                    {
+                        val3 ~= def[i];
+                        ++i;
+                        if(i == def.length)
+                            return false;
+                    }
+                    while(def[i] != d(')'));
+                    ++i;
+                    
+                    static foreach(type; typel)
+                    {
+                        mixin(type ~ " " ~ type ~ "painConstant = new " ~ type ~ "();");
+                    }
+
+                    static foreach(type; typel)
+                    {
+                        if(type == val)
+                        {
+                            try
+                            {
+                                mixin(type ~ "painConstant.fromDstring(val3);");
+                            }
+                            catch(Exception e)
+                            {
+                                return false;
+                            }
+                            goto endf;
+                        }
+                    }
+                    endf:
+                    debug "here".writeln;
+                    if(isOp)
+                    {
+                        static foreach(type; typel)
+                        {
+                            if(currOperand == type)
+                            {
+                                static foreach(type2; typel)
+                                {
+                                    if(type2 == val)
+                                    {
+                                        mixin("if(!" ~ type ~ "painConstant.applyOp(currOp, " ~ type2 ~ "painConstant))
+                                        {
+                                            return false;
+                                        }");
+                                        goto endf2;
+                                    }
+                                }
+                            }
+                        }
+                        endf2:
+                        isOp = false;
+                        currOperand = val;
+                    }
+                    if(def[i] != d('%'))
+                        return false;
+                    break;
+               case d('('):
                     ++indentation;
                     ++i;
                     break;
@@ -445,10 +520,10 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                     do
                     {
                         tempstr ~= def[i];
-                        if(((def[i] != d('x')) && (def[i] != d('\\'))) && (def[i] != d('(') && def[i] != d(' ')))
+                        if(((def[i] != d('x')) && (def[i] != d('\\'))) && (def[i] != d('(') && def[i] != d(' ')) && def[i] != d('%'))
                              ++i;
                     }
-                    while((def[i] != d('x') && def[i] != d('\\')) && (def[i] != d('(') && def[i] != d(' ')));
+                    while((def[i] != d('x') && def[i] != d('\\')) && (def[i] != d('(') && def[i] != d(' '))  && def[i] != d('%'));
                     
                     /+if(def[i] != d('(')) // Operators+/
                         currOp = tempstr.idup;
@@ -525,6 +600,10 @@ bool validateFunction(in dstring func, in dstring def) @trusted
     def = "x1*x2"d;
     func = "(Number,Number)(Number)"d;
     assert(registerFunction("f"d, func, def));
+
+    // Issue 16
+    def = "x1*x2*%Number(5+0i)%"d;
+    assert(validateFunction(func, def));
     //Functions within functions were too hard to implement, so we removed them.
     //def =  "x1* f(x1,x2)(Number)"d;
     //assert(validateFunction(func, def));

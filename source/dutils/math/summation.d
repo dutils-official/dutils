@@ -79,13 +79,19 @@ dstring summation(dstring[] op) @safe
         temp ~= op[0][i];
 
     dstring temp2;
+    size_t n_index;
+    size_t k = 0;
     ++i;
     for(; op[0][i] != d(')'); ++i) // Get the values of the function parameters.
     {
         if(op[0][i] == d(','))
         {
-            paramValues ~= temp2;
+            if(temp2 != "n")
+                paramValues ~= temp2;
+            else
+                n_index = k;
             temp2 = ""d;
+            ++k;
             continue;
         }
         temp2 ~= op[0][i];
@@ -100,11 +106,14 @@ dstring summation(dstring[] op) @safe
     {
         if(op[0][i] == d(','))
         {
-            paramTypes ~= temp2;
-            temp ~= d(',');
-            temp2 = ""d;
-            typeIndices[temp2] ~= j;
-            ++j;
+            if(j != n_index)
+            {
+                paramTypes ~= temp2;
+                temp ~= d(',');
+                typeIndices[temp2] ~= j;
+                ++j;
+                temp2 = ""d;
+            }
             continue;
         }
         temp2 ~= op[0][i];
@@ -121,7 +130,20 @@ dstring summation(dstring[] op) @safe
     upperindex.fromDstring(temp2);
     auto one = new Number(NumberContainer(BigInt(1), BigInt(0), 0, precision));
 
-    // Set up for repeated function calls
+    // Set up for repeated function calls (intialize temporary variables)
+
+    static foreach(type; typel)
+    {
+        if(type in typeIndices)
+        {
+            foreach(ind; typeIndices[type])
+            {
+                mixin("temp" ~ type ~ ".length++;");
+                mixin("temp" ~ type ~ "[$-1] = new " ~ type ~ "();");
+                mixin("temp" ~ type ~ "[$-1].fromDstring(paramValues[ind]);");
+            }
+        }
+    }
 
     for(; index.opCmp!"<="(upperindex); index.applyOp("+", one)) // Main loop
     {
