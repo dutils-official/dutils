@@ -98,7 +98,7 @@ bool removeFunction(in dstring name, in dstring func) @safe
 
 /*******************************************
  * Validates a function.
- * TODO: CONSTANTS
+ *
  * Params:
  *     func =
  *        The function name and parameters.
@@ -666,7 +666,7 @@ import std.typecons : Tuple;
 
 /***********************************************************
  * Executes a function.
- *
+ * TODO: Constants
  *
  * Params:
  *     func =
@@ -698,6 +698,17 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     {
         switch(funcList[func][i])
         {
+            case d('%'):
+                do
+                {
+                    parens[indentation][parenNum[indentation]] ~= funcList[func][i];
+                    ++i;
+                    if(i >= funcList[func].length)
+                        break;
+                }
+                while(funcList[func][i] != d(')'));
+                parens[indentation][parenNum[indentation]] ~= ")"d;
+                break;
             case d('('):
                 ++indentation;
                 if(indentation !in parens)
@@ -762,10 +773,65 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
             bool firstOperand = false;
             for(size_t i = 0; i < parens[key][key2].length; i++)
             {
-                //Get to work executing the function.
+                // Get to work executing the function.
                 switch(parens[key][key2][i])
                 {
-                    case d('('): //Parentheses, also known as a pain in the ass.
+                    case d('%'): // Constants (Issue #16)
+                        dstring tempType = ""d;
+                        ++i;
+                        do
+                        {
+                            tempType ~= parens[key][key2][i];
+                            ++i;
+                        }
+                        while(parens[key][key2][i] != d('('));
+
+                        dstring val = ""d;
+                        ++i;
+                        do
+                        {
+                            val ~= parens[key][key2][i];
+                            ++i;
+                        }
+                        while(parens[key][key2][i] != d(')'));
+                        ++i;
+
+                        if(!firstOperand)
+                        {
+                            firstOperand = true;
+                            static foreach(type; typel)
+                            {
+                                if(type == tempType)
+                                {
+                                    mixin("temp" ~ type ~ "[key][key2] = new " ~ type ~ "();");
+                                    mixin("temp" ~ type ~ "[key][key2].fromDstring(val);");
+                                }
+                            }
+                            currType = tempType;
+                        }
+                        else
+                        {
+                            bool c;
+                            static foreach(type2; typel)
+                            {
+                                if(type2 == tempType)
+                                {
+                                    mixin(type2 ~ " constant = new " ~ type2 ~ "();");
+                                    constant.fromDstring(val);
+                                    static foreach(type; typel)
+                                    {
+                                        if(type == currType)
+                                        {
+                                            mixin("c = temp" ~ type ~ "[key][key2].applyOp(currOp, constant);");
+                                        }
+                                    }
+                                }
+                            }
+                            assert(c);
+                            currOp = ""d;
+                        }
+                        break;
+                    case d('('): // Parentheses, also known as a pain in the ass.
                         static foreach(type; typel)
                         {
                             mixin("if(temp" ~ type ~ "[key+1][currParen] !is null)
@@ -928,4 +994,11 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     assert(registerFunction("ree"d, func, def));
     i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    assert(removeFunction("ree"d, func));
+
+    // Issue 16
+    def ~= "+%Number(5+0i)%"d;
+    assert(registerFunction("ree"d, func, def));
+    i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
+    assert(i.toDstring == "11+0i"d, cast(char[])i.toDstring.dup);
 }
