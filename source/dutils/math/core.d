@@ -698,7 +698,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     {
         switch(funcList[func][i])
         {
-            case d('%'):
+            case d('%'): // Bug-free
                 do
                 {
                     parens[indentation][parenNum[indentation]] ~= funcList[func][i];
@@ -707,7 +707,8 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                         break;
                 }
                 while(funcList[func][i] != d(')'));
-                parens[indentation][parenNum[indentation]] ~= ")"d;
+                parens[indentation][parenNum[indentation]] ~= ")%"d;
+                ++i;
                 break;
             case d('('):
                 ++indentation;
@@ -762,6 +763,21 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     }
     foreach(ref key; keys2)
         key.sort!"b > a";
+        
+    debug
+    {
+        foreach(key; parens.keys)
+        {
+            ("key: " ~ key.to!string).writeln;
+            foreach_reverse(key2; parens[key].keys)
+            {
+                ("key2: " ~ key2.to!string).writeln;
+                parens[key][key2].writeln;
+                writeln();
+            }
+        }
+    }
+        
     foreach_reverse(key; keys)
     {
         debug import std.stdio;
@@ -777,6 +793,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                 switch(parens[key][key2][i])
                 {
                     case d('%'): // Constants (Issue #16)
+                        debug "bruh".writeln;
                         dstring tempType = ""d;
                         ++i;
                         do
@@ -830,6 +847,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                             assert(c);
                             currOp = ""d;
                         }
+                        debug parens[key][key2].writeln;
                         break;
                     case d('('): // Parentheses, also known as a pain in the ass.
                         static foreach(type; typel)
@@ -997,6 +1015,8 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     assert(removeFunction("ree"d, func));
 
     // Issue 16
+    debug import std.stdio;
+    debug "bug".writeln;
     def ~= "+%Number(5+0i)%"d;
     assert(registerFunction("ree"d, func, def));
     i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
