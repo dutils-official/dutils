@@ -219,10 +219,7 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                         }
                     }
                     endf:
-                    debug "here".writeln;
-                    debug currOp.writeln;
-                    debug currOperand.writeln;
-                    debug val.writeln;
+
                     if(isOp)
                     {
                         static foreach(type; typel)
@@ -246,13 +243,13 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                         isOp = false;
                         currOperand = val;
                     }
-                    debug def[i].writeln;
+
                     if(def[i] != d('%'))
                     {
                         return false;
                     }
                     ++i;
-                    debug "test".writeln;
+
                     break;
                case d('('):
                     ++indentation;
@@ -749,7 +746,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
             default:
                 if(funcList[func][i-1] == d(')'))
                     parens[indentation][parenNum[indentation]] ~= "()"d;
-                debug funcList[func][i].writeln;
                 parens[indentation][parenNum[indentation]] ~= funcList[func][i];
         }
     }
@@ -766,19 +762,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     foreach(ref key; keys2)
         key.sort!"b > a";
         
-    debug
-    {
-        foreach(key; parens.keys)
-        {
-            ("key: " ~ key.to!string).writeln;
-            foreach_reverse(key2; parens[key].keys)
-            {
-                ("key2: " ~ key2.to!string).writeln;
-                parens[key][key2].writeln;
-                writeln();
-            }
-        }
-    }
         
     foreach_reverse(key; keys)
     {
@@ -795,7 +778,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                 switch(parens[key][key2][i])
                 {
                     case d('%'): // Constants (Issue #16)
-                        debug "bruh".writeln;
                         dstring tempType = ""d;
                         ++i;
                         do
@@ -849,12 +831,8 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                             assert(c);
                             currOp = ""d;
                         }
-                        debug parens[key][key2].writeln;
                         break;
                     case d('('): // Parentheses, also known as a pain in the ass.
-                        debug currParen.writeln;
-                        debug writeln(key+1);
-                        debug parens[key][key2][i+1].writeln;
                         static foreach(type; typel)
                         {
                             mixin("
@@ -1021,8 +999,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     assert(removeFunction("ree"d, func));
 
     // Issue 16
-    debug import std.stdio;
-    debug "bug".writeln;
+
     def ~= "+%Number(5+0i)%"d;
     assert(registerFunction("ree"d, func, def));
     i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
