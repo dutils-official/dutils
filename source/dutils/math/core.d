@@ -694,6 +694,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     size_t indentation = 0;
     size_t[size_t] parenNum;
     parenNum[0] = 0;
+    bool bruhx = false;
     for(size_t i = 0; i < funcList[func].length; ++i) // Organize the function into parentheses groups.
     {
         switch(funcList[func][i])
@@ -748,6 +749,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
             default:
                 if(funcList[func][i-1] == d(')'))
                     parens[indentation][parenNum[indentation]] ~= "()"d;
+                debug funcList[func][i].writeln;
                 parens[indentation][parenNum[indentation]] ~= funcList[func][i];
         }
     }
@@ -781,12 +783,12 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     foreach_reverse(key; keys)
     {
         debug import std.stdio;
-        size_t currParen = 0;
         foreach(key2; keys2[key])
         {
             dstring currOp = ""d;
             dstring currType = ""d;
             bool firstOperand = false;
+            size_t currParen = 0;
             for(size_t i = 0; i < parens[key][key2].length; i++)
             {
                 // Get to work executing the function.
@@ -850,9 +852,13 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                         debug parens[key][key2].writeln;
                         break;
                     case d('('): // Parentheses, also known as a pain in the ass.
+                        debug currParen.writeln;
+                        debug writeln(key+1);
+                        debug parens[key][key2][i+1].writeln;
                         static foreach(type; typel)
                         {
-                            mixin("if(temp" ~ type ~ "[key+1][currParen] !is null)
+                            mixin("
+                            if(temp" ~ type ~ "[key+1][currParen] !is null)
                             {
                                 currType = type;
                                 if(!firstOperand)
@@ -948,7 +954,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                 break;
                         }
                         while(parens[key][key2][i] != d('\\') && parens[key][key2][i] != d('x') && parens[key][key2][i]
-                        != d('('));
+                        != d('(') && parens[key][key2][i] != d('%'));
                         --i;
                 }
             }
