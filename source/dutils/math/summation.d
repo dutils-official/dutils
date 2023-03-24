@@ -38,7 +38,7 @@ private import dutils.math.number;
 
 /*********************************************************
  * Implements Summation
- *
+ * TODO: FIX DOCS
  * Params:
  *     op =
  *         The arguments to be passed in.  These are:
@@ -54,7 +54,7 @@ private import dutils.math.number;
  *     A dstring containing the serialized value of the
  *     sum of the function about the index.
  */
-dstring summation(dstring[] op) @safe
+dstring summation(T ...)(dstring[] op) @safe
 {
     dstring ret;
     dstring func; // Store the function here.
@@ -70,10 +70,7 @@ dstring summation(dstring[] op) @safe
     dstring[] paramValues;
     size_t[][dstring] typeIndices;
         
-    static foreach(type; typel) // OH NO NOT THIS AGAIN
-    {
-        mixin(type ~ "[] temp" ~ type ~ ";");
-    }
+    Tuple!T args;
     size_t i;
     for(i = 0; op[0][i] != d('('); ++i) // Get function name.
         temp ~= op[0][i];
@@ -89,7 +86,10 @@ dstring summation(dstring[] op) @safe
             if(temp2 != "n")
                 paramValues ~= temp2;
             else
+            {
                 n_index = k;
+                paramValues ~= ""d;
+            }
             temp2 = ""d;
             ++k;
             continue;
@@ -109,19 +109,28 @@ dstring summation(dstring[] op) @safe
             if(j != n_index)
             {
                 paramTypes ~= temp2;
-                temp ~= d(',');
                 typeIndices[temp2] ~= j;
-                ++j;
-                temp2 = ""d;
             }
+            else
+            {
+                paramTypes ~= "Number"d;
+                typeIndices["Number"d] ~= j;
+            }
+            temp ~= d(',');
+            ++j;
+            temp2 = ""d;
             continue;
         }
         temp2 ~= op[0][i];
     }
     paramTypes ~= temp2;
-    temp ~= ")"d;
+    temp ~= ")("d;
     typeIndices[temp2] ~= j;
     ++j;
+    i +=2;
+    for(; op[0][i] != d(')'); ++i)
+        ret ~= op[0][i];
+    temp ~= ")"d;
     temp2 = ""d;
 
     Number upperindex = new Number(NumberContainer(BigInt(0), BigInt(0), 0, precision));
@@ -131,24 +140,52 @@ dstring summation(dstring[] op) @safe
     auto one = new Number(NumberContainer(BigInt(1), BigInt(0), 0, precision));
 
     // Set up for repeated function calls (intialize temporary variables)
-
+    size_t indo = 0;
+    
     static foreach(type; typel)
     {
         if(type in typeIndices)
         {
             foreach(ind; typeIndices[type])
             {
-                mixin("temp" ~ type ~ ".length++;");
-                mixin("temp" ~ type ~ "[$-1] = new " ~ type ~ "();");
-                mixin("temp" ~ type ~ "[$-1].fromDstring(paramValues[ind]);");
+                mixin("args[ind] = new " ~ type ~ "();");
+                if(paramValues[ind] != ""d)
+                    mixin("args[ind].fromDstring(paramValues[ind]);");
+                else
+                {
+                    mixin("args[ind] = new " ~ type ~ "(index.val);"); // n
+                    indo = ind;
+                }
             }
         }
     }
 
-    for(; index.opCmp!"<="(upperindex); index.applyOp("+", one)) // Main loop
+    // return type
+    static foreach(type; typel)
     {
+        mixin(type ~ " ret" ~ type ~ " = new " ~ type ~ "();");
     }
-    return ret;
+
+    coco: for(; index.opCmp!"<="(upperindex); args[indo].applyOp("+", one)) // Main loop
+    {
+        static foreach(type; typel)
+        {
+            if(type == ret)
+            {
+                mixin("ret" ~ type ~ " = executeFunction(args);");
+                continue coco;
+            }
+        }
+    }
+
+    static foreach(type; typel)
+    {
+        if(type == ret)
+        {
+            mixin("return ret" ~ type ~ ".toDstring;");
+        }
+    }
+    assert(0);
 }
 
 /// The precision to be used while doing the summation.

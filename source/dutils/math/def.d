@@ -70,12 +70,13 @@ abstract class Mtype(T) if(__traits(hasMember, T, "precision"))
 }
 
 /// Define an Operator as used by dutils.math.
-alias Operator = dstring function(dstring[]) @safe;
+alias Operator = void*; /* In reality this is casted to dstring function (T ...)(dstring[]) @safe, but there is no set value for T, it depends on the template
+paramater of executeFunction*/
 
 /// Container for the list of all operators.
 struct Oplist
 {
-    Operator opIndex(dstring op) pure @safe const shared
+    auto opIndex(dstring op) pure @safe const shared
     {
         return this.ops[op];
     }
