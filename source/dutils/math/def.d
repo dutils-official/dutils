@@ -69,31 +69,11 @@ abstract class Mtype(T) if(__traits(hasMember, T, "precision"))
         T contained;
 }
 
-/// Define an Operator as used by dutils.math.
-alias Operator = void*; /* In reality this is casted to dstring function (T ...)(dstring[]) @safe, but there is no set value for T, it depends on the template
-paramater of executeFunction*/
+/// Trying to workaround it being impossible to have varying template params.
+package import std.variant;
 
-/// Container for the list of all operators.
-struct Oplist
-{
-    auto opIndex(dstring op) pure @safe const shared
-    {
-        return this.ops[op];
-    }
-    auto opBinaryRight(string op)(dstring key) pure @safe const shared if(op == "in" || op == "!in")
-    {
-        mixin("return key " ~ op ~ " ops;");
-    }
-    auto keys() @safe
-    {
-        return this.ops.keys;
-    }
-    package:
-        Operator[dstring] ops;
-}
-
-/// The list of all operators.
-package shared Oplist opList;
+/// The list of all operators
+package shared Variant[dstring] opList;
 
 /// Container for the function list.
 struct Funclist
@@ -120,4 +100,7 @@ package shared Funclist funcList;
 package import dutils.math.number; // I'm not sure why this line is here, but I'm too scared to touch it.
 
 /// The list of all types, that has to be kept here and continously updated.
-enum dstring[] typel = ["Number"]; // Too bad that complete modular programming is impossible in D.
+enum dstring[] typel = ["Number"d]; // Too bad that complete modular programming is impossible in D.
+
+/// The list of all types, that has to be kept here and continously updated (string version):
+enum string[] typels = ["Number"];

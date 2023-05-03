@@ -35,6 +35,7 @@ import dutils.math.def;
 
 private import dutils.math.core;
 private import dutils.math.number;
+private import std.typecons : Tuple;
 
 /*********************************************************
  * Implements Summation
@@ -56,6 +57,7 @@ private import dutils.math.number;
  */
 dstring summation(T ...)(dstring[] op) @safe
 {
+    debug import std.stdio;
     dstring ret;
     dstring func; // Store the function here.
     assert(op.length == 3);
@@ -128,9 +130,12 @@ dstring summation(T ...)(dstring[] op) @safe
     typeIndices[temp2] ~= j;
     ++j;
     i +=2;
+
+
     for(; op[0][i] != d(')'); ++i)
         ret ~= op[0][i];
     temp ~= ")"d;
+    func = temp;
     temp2 = ""d;
 
     Number upperindex = new Number(NumberContainer(BigInt(0), BigInt(0), 0, precision));
@@ -146,9 +151,10 @@ dstring summation(T ...)(dstring[] op) @safe
     {
         if(type in typeIndices)
         {
-            foreach(ind; typeIndices[type])
+            static foreach(ind; 0 .. args.fieldNames.length)
             {
                 mixin("args[ind] = new " ~ type ~ "();");
+                debug paramValues[ind].writeln;
                 if(paramValues[ind] != ""d)
                     mixin("args[ind].fromDstring(paramValues[ind]);");
                 else
@@ -166,14 +172,20 @@ dstring summation(T ...)(dstring[] op) @safe
         mixin(type ~ " ret" ~ type ~ " = new " ~ type ~ "();");
     }
 
-    coco: for(; index.opCmp!"<="(upperindex); args[indo].applyOp("+", one)) // Main loop
+    static foreach(indo2; 0 .. args.fieldNames.length)
     {
-        static foreach(type; typel)
+        if(indo == indo2)
         {
-            if(type == ret)
+            coco: for(; index.opCmp!"<="(upperindex); args[indo2].applyOp("+", one)) // Main loop
             {
-                mixin("ret" ~ type ~ " = executeFunction(args);");
-                continue coco;
+                static foreach(type; typels)
+                {
+                    if(type == cast(string)ret)
+                    {
+                        mixin("ret" ~ type ~ " = executeFunction!(" ~ typeof(args).stringof[7 .. $-1] ~ ")(func, args);");
+                        continue coco;
+                    }
+                }
             }
         }
     }
@@ -186,6 +198,19 @@ dstring summation(T ...)(dstring[] op) @safe
         }
     }
     assert(0);
+}
+
+///
+unittest
+{
+    // We want to make sure that the sum of the first n integers is equal to n(n+1)/2.
+    dstring funcname = "(Number)(Number)"d;
+    dstring funcbody = "x1"d;
+    assert(registerFunction("f1"d, funcname, funcbody));
+    funcbody = "x1*(x1+%Number(1+0i)%)/%Number(2+0i)%"d;
+    assert(registerFunction("f2"d, funcname, funcbody));
+
+    auto sum = summation!(Number)(["f1(n)(Number)(Number)"d, "1+0i"d, "100+0i"d]);
 }
 
 /// The precision to be used while doing the summation.
