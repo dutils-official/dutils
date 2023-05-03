@@ -65,7 +65,7 @@ abstract class Mtype(T) if(__traits(hasMember, T, "precision"))
     {
         this.contained = num;
     }
-    protected:
+    package:
         T contained;
 }
 

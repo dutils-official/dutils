@@ -154,9 +154,13 @@ dstring summation(T ...)(dstring[] op) @safe
             static foreach(ind; 0 .. args.fieldNames.length)
             {
                 mixin("args[ind] = new " ~ type ~ "();");
-                debug paramValues[ind].writeln;
-                if(paramValues[ind] != ""d)
-                    mixin("args[ind].fromDstring(paramValues[ind]);");
+                if(paramValues[ind] != "" && paramValues[ind] != "n"d)
+                    args[ind].fromDstring(paramValues[ind]);
+                else if(paramValues[ind] == "n"d)
+                {
+                    args[ind] = new Number();
+                    args[ind].contained = index.val;
+                }
                 else
                 {
                     mixin("args[ind] = new " ~ type ~ "(index.val);"); // n
@@ -176,7 +180,7 @@ dstring summation(T ...)(dstring[] op) @safe
     {
         if(indo == indo2)
         {
-            coco: for(; index.opCmp!"<="(upperindex); args[indo2].applyOp("+", one)) // Main loop
+            coco: for(; index.opCmp!"<="(upperindex); args[indo2].applyOp("+", one)) // Main loopv (HANGS LOL)
             {
                 static foreach(type; typels)
                 {
