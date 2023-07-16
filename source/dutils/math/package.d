@@ -31,5 +31,3 @@ else
 import dutils.math.core;
 /// Implements complex numbers for the math library.
 import dutils.math.number;
-/// Implements Summations
-import dutils.math.summation;

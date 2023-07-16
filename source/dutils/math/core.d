@@ -921,8 +921,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                         --i;
                         currOp = ""d;
                         break;
-                    case d('\\'): //Operators, such as derivatives, sums, and integrals.
-                        break;
                     default: //Type specific operators.
                         do
                         {
