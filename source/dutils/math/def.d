@@ -65,34 +65,61 @@ abstract class Mtype(T) if(__traits(hasMember, T, "precision"))
     {
         this.contained = num;
     }
-    protected:
+    package:
         T contained;
 }
 
-/// Define an Operator as used by dutils.math.
-alias Operator = dstring function(dstring[]) @safe;
+/// Trying to workaround it being impossible to have varying template params.
+package import std.variant;
 
-/// Container for the list of all operators.
-struct Oplist
+package struct _variant
 {
-    Operator opIndex(dstring op) pure @safe const shared
-    {
-        return this.ops[op];
-    }
-    auto opBinaryRight(string op)(dstring key) pure @safe const shared if(op == "in" || op == "!in")
-    {
-        mixin("return key " ~ op ~ " ops;");
-    }
-    auto keys() @safe
-    {
-        return this.ops.keys;
-    }
-    package:
-        Operator[dstring] ops;
+    Variant var;
+    dstring hash;
 }
 
-/// The list of all operators.
-package shared Oplist opList;
+/// Container for the operator list:
+struct OpList
+{
+    Variant opIndex(dstring hash)
+    {
+        Variant ret = false;
+        foreach(op; ops)
+        {
+            if(op.hash == hash)
+                return op.var;
+        }
+        return ret;
+    }
+    bool opBinaryRight(string op)(inout(dchar)[] key)  @trusted if(op == "in" || op == "!in")
+    {
+        static if(op == "in")
+            const k = true;
+        else
+            const k = false;
+        foreach(op; ops)
+        {
+            if(op.hash == cast(dstring)key)
+                return k;
+        }
+        return !k;
+    }
+    auto keys() const @trusted @property
+    {
+        dstring[] _keys;
+        foreach(op; ops)
+        {
+            _keys ~= op.hash;
+        }
+        return _keys;
+    }
+    package:
+        _variant[] ops;
+}
+
+/// The list of all special functions/operators.
+package OpList opList;
+
 
 /// Container for the function list.
 struct Funclist
@@ -105,7 +132,7 @@ struct Funclist
     {
         mixin("return cast(dstring)key " ~ op ~ " funcs;");
     }
-    auto keys()
+    auto keys() pure nothrow @safe
     {
         return this.funcs.keys;
     }
@@ -119,4 +146,7 @@ package shared Funclist funcList;
 package import dutils.math.number; // I'm not sure why this line is here, but I'm too scared to touch it.
 
 /// The list of all types, that has to be kept here and continously updated.
-enum dstring[] typel = ["Number"]; // Too bad that complete modular programming is impossible in D.
+enum dstring[] typel = ["Number"d]; // Too bad that complete modular programming is impossible in D.
+
+/// The list of all types, that has to be kept here and continously updated (string version):
+enum string[] typels = ["Number"];

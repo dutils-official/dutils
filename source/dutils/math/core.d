@@ -169,9 +169,89 @@ bool validateFunction(in dstring func, in dstring def) @trusted
         do
         {
             tempNum = ""d;
+            dstring val3;
+            dstring val;
             switch(def[i])
             {
-                case d('('):
+                case d('%'): //Constants
+                    debug import std.stdio;
+                    if(isOperand && !isOp)
+                        return false;
+                    isOperand = true;
+                    ++i;
+                    do
+                    {
+                        val ~= def[i];
+                        ++i;
+                        if(i == def.length)
+                            return false;
+                    }
+                    while(def[i] != d('('));
+                    ++i;
+                    do
+                    {
+                        val3 ~= def[i];
+                        ++i;
+                        if(i == def.length)
+                            return false;
+                    }
+                    while(def[i] != d(')'));
+                    ++i;
+                    
+                    static foreach(type; typel)
+                    {
+                        mixin(type ~ " " ~ type ~ "painConstant = new " ~ type ~ "();");
+                    }
+
+                    static foreach(type; typel)
+                    {
+                        if(type == val)
+                        {
+                            try
+                            {
+                                mixin(type ~ "painConstant.fromDstring(val3);");
+                            }
+                            catch(Exception e)
+                            {
+                                return false;
+                            }
+                            goto endf;
+                        }
+                    }
+                    endf:
+
+                    if(isOp)
+                    {
+                        static foreach(type; typel)
+                        {
+                            if(currOperand == type)
+                            {
+                                static foreach(type2; typel)
+                                {
+                                    if(type2 == val)
+                                    {
+                                        mixin("if(!" ~ type ~ "painConstant.applyOp(currOp, " ~ type2 ~ "painConstant))
+                                        {
+                                            return false;
+                                        }");
+                                        goto endf2;
+                                    }
+                                }
+                            }
+                        }
+                        endf2:
+                        isOp = false;
+                        currOperand = val;
+                    }
+
+                    if(def[i] != d('%'))
+                    {
+                        return false;
+                    }
+                    ++i;
+
+                    break;
+               case d('('):
                     ++indentation;
                     ++i;
                     break;
@@ -445,10 +525,10 @@ bool validateFunction(in dstring func, in dstring def) @trusted
                     do
                     {
                         tempstr ~= def[i];
-                        if(((def[i] != d('x')) && (def[i] != d('\\'))) && (def[i] != d('(') && def[i] != d(' ')))
+                        if(((def[i] != d('x')) && (def[i] != d('\\'))) && (def[i] != d('(') && def[i] != d(' ')) && def[i] != d('%'))
                              ++i;
                     }
-                    while((def[i] != d('x') && def[i] != d('\\')) && (def[i] != d('(') && def[i] != d(' ')));
+                    while((def[i] != d('x') && def[i] != d('\\')) && (def[i] != d('(') && def[i] != d(' '))  && def[i] != d('%'));
                     
                     /+if(def[i] != d('(')) // Operators+/
                         currOp = tempstr.idup;
@@ -525,6 +605,10 @@ bool validateFunction(in dstring func, in dstring def) @trusted
     def = "x1*x2"d;
     func = "(Number,Number)(Number)"d;
     assert(registerFunction("f"d, func, def));
+
+    // Issue 16
+    def = "x1*x2*%Number(5+0i)%"d;
+    assert(validateFunction(func, def));
     //Functions within functions were too hard to implement, so we removed them.
     //def =  "x1* f(x1,x2)(Number)"d;
     //assert(validateFunction(func, def));
@@ -579,7 +663,7 @@ import std.typecons : Tuple;
 
 /***********************************************************
  * Executes a function.
- *
+ * TODO: Constants
  *
  * Params:
  *     func =
@@ -607,10 +691,23 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     size_t indentation = 0;
     size_t[size_t] parenNum;
     parenNum[0] = 0;
+    bool bruhx = false;
     for(size_t i = 0; i < funcList[func].length; ++i) // Organize the function into parentheses groups.
     {
         switch(funcList[func][i])
         {
+            case d('%'): // Bug-free
+                do
+                {
+                    parens[indentation][parenNum[indentation]] ~= funcList[func][i];
+                    ++i;
+                    if(i >= funcList[func].length)
+                        break;
+                }
+                while(funcList[func][i] != d(')'));
+                parens[indentation][parenNum[indentation]] ~= ")%"d;
+                ++i;
+                break;
             case d('('):
                 ++indentation;
                 if(indentation !in parens)
@@ -664,24 +761,82 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     }
     foreach(ref key; keys2)
         key.sort!"b > a";
+        
+        
     foreach_reverse(key; keys)
     {
         debug import std.stdio;
-        size_t currParen = 0;
         foreach(key2; keys2[key])
         {
             dstring currOp = ""d;
             dstring currType = ""d;
             bool firstOperand = false;
+            size_t currParen = 0;
             for(size_t i = 0; i < parens[key][key2].length; i++)
             {
-                //Get to work executing the function.
+                // Get to work executing the function.
                 switch(parens[key][key2][i])
                 {
-                    case d('('): //Parentheses, also known as a pain in the ass.
+                    case d('%'): // Constants (Issue #16)
+                        dstring tempType = ""d;
+                        ++i;
+                        do
+                        {
+                            tempType ~= parens[key][key2][i];
+                            ++i;
+                        }
+                        while(parens[key][key2][i] != d('('));
+
+                        dstring val = ""d;
+                        ++i;
+                        do
+                        {
+                            val ~= parens[key][key2][i];
+                            ++i;
+                        }
+                        while(parens[key][key2][i] != d(')'));
+                        ++i;
+
+                        if(!firstOperand)
+                        {
+                            firstOperand = true;
+                            static foreach(type; typel)
+                            {
+                                if(type == tempType)
+                                {
+                                    mixin("temp" ~ type ~ "[key][key2] = new " ~ type ~ "();");
+                                    mixin("temp" ~ type ~ "[key][key2].fromDstring(val);");
+                                }
+                            }
+                            currType = tempType;
+                        }
+                        else
+                        {
+                            bool c;
+                            static foreach(type2; typel)
+                            {
+                                if(type2 == tempType)
+                                {
+                                    mixin(type2 ~ " constant = new " ~ type2 ~ "();");
+                                    constant.fromDstring(val);
+                                    static foreach(type; typel)
+                                    {
+                                        if(type == currType)
+                                        {
+                                            mixin("c = temp" ~ type ~ "[key][key2].applyOp(currOp, constant);");
+                                        }
+                                    }
+                                }
+                            }
+                            assert(c);
+                            currOp = ""d;
+                        }
+                        break;
+                    case d('('): // Parentheses, also known as a pain in the ass.
                         static foreach(type; typel)
                         {
-                            mixin("if(temp" ~ type ~ "[key+1][currParen] !is null)
+                            mixin("
+                            if(temp" ~ type ~ "[key+1][currParen] !is null)
                             {
                                 currType = type;
                                 if(!firstOperand)
@@ -766,8 +921,6 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                         --i;
                         currOp = ""d;
                         break;
-                    case d('\\'): //Operators, such as derivatives, sums, and integrals.
-                        break;
                     default: //Type specific operators.
                         do
                         {
@@ -777,7 +930,7 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
                                 break;
                         }
                         while(parens[key][key2][i] != d('\\') && parens[key][key2][i] != d('x') && parens[key][key2][i]
-                        != d('('));
+                        != d('(') && parens[key][key2][i] != d('%'));
                         --i;
                 }
             }
@@ -841,4 +994,12 @@ Return executeFunction(Return, Mtypes...)(in dstring func, in Tuple!(Mtypes) arg
     assert(registerFunction("ree"d, func, def));
     i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
     assert(i.toDstring == "6+0i"d, cast(char[])i.toDstring.dup);
+    assert(removeFunction("ree"d, func));
+
+    // Issue 16
+
+    def ~= "+%Number(5+0i)%"d;
+    assert(registerFunction("ree"d, func, def));
+    i = executeFunction!(Number, Number, Number, Number, Number)("ree(Number,Number,Number,Number)(Number)"d, b);
+    assert(i.toDstring == "11+0i"d, cast(char[])i.toDstring.dup);
 }

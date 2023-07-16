@@ -270,7 +270,7 @@ class Number : Mtype!NumberContainer
      *     op =
      *         The operator to apply.
      *     rhs =
-     *         THe right hand side of the expression.
+     *         The right hand side of the expression.
      * Returns:
      *     The result of the expression.
      */
@@ -295,6 +295,21 @@ class Number : Mtype!NumberContainer
     {
         return (this.contained == rhs.contained);
     }
+
+    /*******************************************
+     * Compare the magnitude (currently only
+     * the real part) of two numbers.
+     *
+     * Params:
+     *     rhs =
+     *         The number to compare `this` to.
+     * Returns:
+     *     Whether the result of the comparison is true.
+     */
+     bool opCmp(string op)(in Number rhs) pure const @safe nothrow
+     {
+        return this.contained.opCmp!op(rhs.contained);
+     }
 }
 
 ///
@@ -517,6 +532,48 @@ struct NumberContainer
         return ((this.val == rhs.val) && (this.ival == rhs.ival))
         && ((this.pow10 == rhs.pow10) && (this.precision == rhs.precision));
     }
+
+    /********************************************
+     * Compare two Numbers.
+     * TODO:  Once exponentiation has been added,
+     * use magnitude.
+     *
+     * Params
+     *     rhs =
+     *         The Number to compare to.
+     * Returns:
+     *     The value of the comparison
+     */
+    bool opCmp(string op)(in NumberContainer rhs) pure @safe nothrow const
+    {
+        BigInt a = this.val;
+        BigInt b = rhs.val;
+
+        if(rhs.pow10 < 0)
+        {
+            a *= BigInt(10)^^(-rhs.pow10);
+            b *= BigInt(10)^^(-rhs.pow10);
+        }
+        else
+        {
+            a *= BigInt(10)^^rhs.pow10;
+            b *= BigInt(10)^^rhs.pow10;
+        }
+
+        if(this.pow10 < 0)
+        {
+            a *= BigInt(10)^^(-this.pow10);
+            b *= BigInt(10)^^(-this.pow10);
+        }
+        else
+        {
+            a *= BigInt(10)^^this.pow10;
+            b *= BigInt(10)^^this.pow10;
+        }
+
+        mixin("return a " ~ op ~ " b;");
+    }
+
     package:
         BigInt val;
         BigInt ival;
@@ -526,3 +583,6 @@ struct NumberContainer
             int pow10;
         ulong precision;
 }
+
+
+
