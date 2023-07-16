@@ -31,3 +31,5 @@ else
 import dutils.math.core;
 /// Implements complex numbers for the math library.
 import dutils.math.number;
+/// Implements logarithms
+import dutils.math.log;

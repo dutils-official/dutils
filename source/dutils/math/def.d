@@ -72,8 +72,54 @@ abstract class Mtype(T) if(__traits(hasMember, T, "precision"))
 /// Trying to workaround it being impossible to have varying template params.
 package import std.variant;
 
-/// The list of all operators
-package shared Variant[dstring] opList;
+package struct _variant
+{
+    Variant var;
+    dstring hash;
+}
+
+/// Container for the operator list:
+struct OpList
+{
+    Variant opIndex(dstring hash)
+    {
+        Variant ret = false;
+        foreach(op; ops)
+        {
+            if(op.hash == hash)
+                return op.var;
+        }
+        return ret;
+    }
+    bool opBinaryRight(string op)(inout(dchar)[] key)  @trusted if(op == "in" || op == "!in")
+    {
+        static if(op == "in")
+            const k = true;
+        else
+            const k = false;
+        foreach(op; ops)
+        {
+            if(op.hash == cast(dstring)key)
+                return k;
+        }
+        return !k;
+    }
+    auto keys() const @trusted @property
+    {
+        dstring[] _keys;
+        foreach(op; ops)
+        {
+            _keys ~= op.hash;
+        }
+        return _keys;
+    }
+    package:
+        _variant[] ops;
+}
+
+/// The list of all special functions/operators.
+package OpList opList;
+
 
 /// Container for the function list.
 struct Funclist
@@ -86,7 +132,7 @@ struct Funclist
     {
         mixin("return cast(dstring)key " ~ op ~ " funcs;");
     }
-    auto keys()
+    auto keys() pure nothrow @safe
     {
         return this.funcs.keys;
     }
